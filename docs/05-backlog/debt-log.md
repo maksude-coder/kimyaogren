@@ -13,6 +13,8 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-001 | Roadmap/backlog synchronization for the Program domain | Open | Medium | PM | Sprint 1 | Before Sprint 1 retrospective |
 | DEBT-002 | `program_translations` recommendation vs. JSON-column implementation never reconciled | Open | Low | Architect | Sprint 1 | Unscheduled |
 | DEBT-003 | `dd-grades.md` predates the Program-rooted hierarchy; `program_id` / uniqueness scope undecided | **Resolved** | High | Architect | Sprint 1 (found during Sprint 1.2 kickoff prep) | Resolved before Task 1.2 start |
+| DEBT-004 | `docs/02-data/relationships.md` disagreed with the dictionaries on `Grade`→`Unit`→`Topic`→`Learning Objective` cascade delete behavior (RESTRICT vs. CASCADE), and was missing a `Program` section entirely | **Resolved** | High | Architect | Sprint 1.3 planning | Resolved before Sprint 1.3 plan finalized |
+| DEBT-005 | `docs/02-data/relationships.md` (Academic Domain, Topic→`questions`) says `CASCADE DELETE`; `docs/02-data/dictionaries/dd-questions.md` and `relationships.md`'s own Assessment Domain section say `RESTRICT` for the same `topic_id` FK | Open | Medium | Architect | Sprint 1.3 planning (found during `DEBT-004` cross-check) | Before Assessment domain (Question) implementation |
 
 ---
 
@@ -95,6 +97,54 @@ This was discovered while preparing the Sprint 1.2 kickoff package (checking whe
 - `docs/02-data/dictionaries/dd-grades.md` (updated to Option B, v2.0)
 - `docs/05-backlog/epic-01-academic-domain.md` (Grade Data Dictionary Summary, updated to match)
 - `docs/01-architecture/domain-program.md` § 4 "Relationships" (already matched Option B; no change needed)
+
+---
+
+## DEBT-004: `relationships.md` Cascade Disagreement and Missing `Program` Section — RESOLVED
+
+### Resolution
+
+**Status: Resolved.** An Architecture Decision Brief was prepared during Sprint 1.3 planning, comparing Option A (Cascade Delete) against Option B (Restrict) for the `Program → Grade → Unit → Topic → Learning Objective` ownership chain.
+
+**Decision: Option A — Cascade Delete — approved**, on the rationale that the academic hierarchy is a strict ownership tree (Program owns Grade, Grade owns Unit, Unit owns Topic, Topic owns Learning Objective) and owned entities must not outlive their owner. This applies uniformly to force-delete only; soft deletes never cascade automatically (verified empirically for `Program → Grade` in Sprint 1.2).
+
+`docs/02-data/relationships.md` was reconciled: added the missing `Program` section (it previously started at `Grade`, omitting the aggregate root entirely); changed `RESTRICT` to `CASCADE DELETE` for `Unit→grade`, `Topic→unit`, and `LearningObjective→topic` (matching what `dd-grades.md`, `dd-units.md`, `dd-topics.md`, and `dd-learning-objectives.md` already said, and what `Program→Grade` already shipped in Task 1.2); added an explicit rule that soft deletes never cascade automatically; updated the mermaid diagram and eager-loading example to start from `Program`.
+
+### Description (original finding, kept for history)
+
+`docs/02-data/relationships.md` described the same physical foreign keys with opposite cascade rules depending on which side of the relationship was read: the parent's `HasMany` row said `CASCADE DELETE` while the child's `BelongsTo` row for the identical FK said `RESTRICT` (e.g. `Grade.units()` = CASCADE, but `Unit.grade()` = RESTRICT). This repeated at every level of the ownership chain. The document also never mentioned `Program` at all — its "Academic Domain" section began at `Grade`, predating the Program-rooted hierarchy entirely.
+
+### Why This Wasn't Fixed Immediately
+
+Choosing a cascade strategy is a genuine architecture decision with real data-safety implications (accidental mass-deletion risk vs. workflow friction), not something to resolve unilaterally while reconciling documentation — escalated as an Architecture Decision Brief instead of being silently picked.
+
+### Related Records
+
+- `docs/02-data/relationships.md` (Academic Domain section, reconciled)
+- `docs/02-data/dictionaries/dd-grades.md`, `dd-units.md`, `dd-topics.md`, `dd-learning-objectives.md` (already consistent with the approved decision, no change needed)
+- `docs/04-sprints/sprint-03-plan.md` (Sprint 1.3 plan, once produced)
+
+---
+
+## DEBT-005: Topic→Question Cascade Rule Disagreement (Assessment Domain)
+
+### Description
+
+While reconciling `DEBT-004`, a second, structurally identical inconsistency was found — out of scope for that decision, since `Question` is not part of the `Program→Grade→Unit→Topic→Learning Objective` ownership tree (it references *into* the tree from the Assessment domain). `docs/02-data/relationships.md`'s Academic Domain section lists `Topic.questions()` as `CASCADE DELETE`, but its own Assessment Domain section (`Question.topic()`) says `RESTRICT`, and `docs/02-data/dictionaries/dd-questions.md` explicitly documents `RESTRICT` with a stated rationale ("Deleting topic RESTRICTS — questions preserved for attempt history").
+
+### Why This Wasn't Fixed Immediately
+
+`Question`/Assessment domain is not scheduled yet (well after `Unit`/`Topic` in the roadmap); resolving this now would be scope creep into a domain with no current sprint plan, and the likely-correct answer (`RESTRICT`, to preserve exam integrity, matching `dd-question-attempts.md`'s identical rationale for `QuestionAttempt.question()`) is already reasoned out in the dictionaries — this just needs the `relationships.md` Academic Domain row corrected to match when Question work is scheduled.
+
+### Recommended Resolution
+
+- When Assessment domain (Question) planning begins, correct `docs/02-data/relationships.md`'s `Topic.questions()` row from `CASCADE DELETE` to `RESTRICT`, matching `dd-questions.md` and `relationships.md`'s own Assessment Domain section.
+- Same check for `Topic.theoryArticles()` (Content domain) — currently `CASCADE DELETE` in both places found so far, needs verification against `dd-theory-articles.md` when Content domain planning begins, since it wasn't cross-checked as part of this Academic-domain-scoped review.
+
+### Related Records
+
+- `docs/02-data/relationships.md` (Academic Domain § Topic, Assessment Domain § Question)
+- `docs/02-data/dictionaries/dd-questions.md`, `dd-question-attempts.md`
 
 ---
 

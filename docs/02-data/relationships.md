@@ -15,14 +15,58 @@ Defines all entity relationships, cardinality, cascade rules, and query patterns
 | **Null on delete** | Reference delete → FK set null (shared entities) |
 | **Index every FK** | Automatic in MySQL 8+, but declare explicitly |
 | **No circular deps** | Relationship graph is a DAG |
+| **A relationship has exactly one cascade rule** | The parent's `HasMany`/`HasOne` row and the child's `BelongsTo` row describe the *same physical foreign key* — they must always state the same cascade behavior. If they disagree, the documentation is wrong (see `docs/05-backlog/debt-log.md` `DEBT-004` for a real instance of this class of error, and `DEBT-005` for one still open). |
+| **Soft deletes never cascade automatically** | Every `CASCADE DELETE` entry in this document describes the **database-level `ON DELETE CASCADE`** constraint, which only fires on a real SQL `DELETE` — i.e. Eloquent's `forceDelete()`. A model using `SoftDeletes` performs an `UPDATE ... SET deleted_at = ...` on ordinary `delete()`, which does **not** touch child rows at all. Routine (soft) deletion in Filament leaves children completely untouched; only an explicit, separately-authorized `ForceDeleteAction` triggers the cascade. Empirically verified for `Program → Grade` in Sprint 1.2 (see `docs/04-sprints/sprint-02-review.md`). |
 
 ---
 
 ## Academic Domain
 
+> **Ownership tree (Architecture Decision, Sprint 1.3 planning):** `Program` owns `Grade`, `Grade` owns `Unit`, `Unit` owns `Topic`, `Topic` owns `Learning Objective`. Owned entities must not outlive their owner — every FK in this ownership chain uses `CASCADE DELETE` on force-delete, consistently, in both directions of each relationship. See `docs/05-backlog/debt-log.md` `DEBT-004` for the decision record. This does **not** extend to entities *referencing into* this tree from other domains (e.g. `Question`, `TheoryArticle`, `PracticeSession` below reference `Topic` but are not owned by it — their `RESTRICT`/`SET NULL` rules reflect a deliberate, separate design choice to preserve assessment/content history, and are unaffected by this decision).
+
+### Program
+```php
+// Program.php
+public function versions(): HasMany
+{
+    return $this->hasMany(ProgramVersion::class);
+}
+
+public function grades(): HasMany
+{
+    return $this->hasMany(Grade::class);
+}
+
+public function users(): BelongsToMany
+{
+    return $this->belongsToMany(User::class, 'user_programs')
+        ->withPivot('enrolled_at', 'status', 'progress_percentage')
+        ->withTimestamps();
+}
+
+public function media(): MorphMany
+{
+    return $this->morphMany(Media::class, 'model');
+}
+```
+
+| Relationship | Type | Related | FK/Pivot | Cascade |
+|--------------|------|---------|----------|---------|
+| versions | HasMany | ProgramVersion | `program_id` | CASCADE DELETE |
+| grades | HasMany | Grade | `program_id` | CASCADE DELETE |
+| users | BelongsToMany | User | `user_programs` pivot | DETACH |
+| creator | BelongsTo | User | `created_by_id` | SET NULL |
+| updater | BelongsTo | User | `updated_by_id` | SET NULL |
+| media | MorphMany | Media | `model_id`, `model_type` | CASCADE DELETE — forward-declared, `Media` not yet implemented (see `docs/01-architecture/domain-program.md` Architectural Note) |
+
 ### Grade
 ```php
 // Grade.php
+public function program(): BelongsTo
+{
+    return $this->belongsTo(Program::class);
+}
+
 public function units(): HasMany
 {
     return $this->hasMany(Unit::class)->orderBy('order');
@@ -31,6 +75,7 @@ public function units(): HasMany
 
 | Relationship | Type | Related | FK | Cascade |
 |--------------|------|---------|-----|---------|
+| program | BelongsTo | Program | `program_id` | CASCADE DELETE |
 | units | HasMany | Unit | `grade_id` | CASCADE DELETE |
 
 ### Unit
@@ -49,7 +94,7 @@ public function topics(): HasMany
 
 | Relationship | Type | Related | FK | Cascade |
 |--------------|------|---------|-----|---------|
-| grade | BelongsTo | Grade | `grade_id` | RESTRICT |
+| grade | BelongsTo | Grade | `grade_id` | CASCADE DELETE |
 | topics | HasMany | Topic | `unit_id` | CASCADE DELETE |
 
 ### Topic
@@ -78,10 +123,10 @@ public function theoryArticles(): HasMany
 
 | Relationship | Type | Related | FK | Cascade |
 |--------------|------|---------|-----|---------|
-| unit | BelongsTo | Unit | `unit_id` | RESTRICT |
+| unit | BelongsTo | Unit | `unit_id` | CASCADE DELETE |
 | learningObjectives | HasMany | LearningObjective | `topic_id` | CASCADE DELETE |
-| questions | HasMany | Question | `topic_id` | CASCADE DELETE |
-| theoryArticles | HasMany | TheoryArticle | `topic_id` | CASCADE DELETE |
+| questions | HasMany | Question | `topic_id` | CASCADE DELETE (see note above — Question is not part of the ownership tree; this specific rule predates this decision and is out of scope for it) |
+| theoryArticles | HasMany | TheoryArticle | `topic_id` | CASCADE DELETE (same note as `questions` above) |
 
 ### LearningObjective
 ```php
@@ -99,7 +144,7 @@ public function questions(): HasMany
 
 | Relationship | Type | Related | FK | Cascade |
 |--------------|------|---------|-----|---------|
-| topic | BelongsTo | Topic | `topic_id` | RESTRICT |
+| topic | BelongsTo | Topic | `topic_id` | CASCADE DELETE |
 | questions | HasMany | Question | `learning_objective_id` | SET NULL |
 
 ---
@@ -508,8 +553,8 @@ public function students(): BelongsToMany
 ### Eager Loading Standards
 
 ```php
-// Academic: Grade with full tree
-Grade::with(['units.topics.learningObjectives'])->get();
+// Academic: Program with full tree
+Program::with(['grades.units.topics.learningObjectives'])->get();
 
 // Assessment: Question with options
 Question::with('options')->find($id);
@@ -546,6 +591,7 @@ PracticeSession::where('user_id', auth()->id())
 
 ```mermaid
 erDiagram
+    PROGRAM ||--o{ GRADE : has
     GRADE ||--o{ UNIT : has
     UNIT ||--o{ TOPIC : has
     TOPIC ||--o{ LEARNING_OBJECTIVE : has

@@ -47,12 +47,18 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - `docs/05-backlog/debt-log.md`: technical debt register, opening `DEBT-001` (roadmap/backlog synchronization for the Program domain), `DEBT-002` (translations table vs. JSON columns), and `DEBT-003` (`dd-grades.md` predates the Program-rooted hierarchy — found while preparing the Sprint 1.2 kickoff package)
 - Sprint 1.2, Task 1.2: Grade domain (migration, model, factory, seeder, Filament resource, feature tests) — Program-scoped per the approved Architecture Decision Brief (`DEBT-003`, Resolved): `program_id` FK, `unique(program_id, number)`, `Program::grades(): HasMany` / `Grade::program(): BelongsTo`
 - `docs/04-sprints/sprint-02-review.md`: Sprint 1.2 review record
+- `docs/05-backlog/debt-log.md`: `DEBT-004` (`relationships.md` cascade disagreement + missing `Program` section — Resolved), `DEBT-005` (Topic→Question cascade disagreement, Assessment domain, Open — found while resolving `DEBT-004`), and `DEBT-006` (epic-01's RelationManager Filament design vs. the standalone-resource pattern actually shipped, Open, low priority — found during Sprint 1.3 planning)
+- `docs/04-sprints/sprint-03-plan.md`: Sprint 1.3 plan (Unit domain) — approved
+- `docs/01-architecture/ownership-model.md`: canonical reference for the academic domain's aggregate root, ownership tree, cascade/soft-delete/force-delete strategy
+- Sprint 1.3, Task 1: Unit domain (migration, model, factory, seeder, Filament resource, policy, feature tests) — Grade-scoped: `grade_id` FK `cascadeOnDelete()`, `unique(grade_id, code)`, `Grade::units(): HasMany` / `Unit::grade(): BelongsTo`, per the ownership model and `DEBT-004`
+- `docs/04-sprints/sprint-03-review.md`: Sprint 1.3 Task 1 review record — Approved
 
 ### Changed
 - `docs/02-data/dictionaries/dd-program.md` reconciled with the actual Task 1.1 implementation (see "Review Notes" section in that file for details)
 - `docs/01-architecture/domain-program.md` relationship table reconciled to match the actual implementation (removed undelivered `translations`/`enrollments` entries); added a note on the `grades` / `media` forward declarations
-- `docs/02-data/dictionaries/dd-grades.md` reconciled from a global lookup table design to Program-scoped (v2.0, Task 1.2 — see Revision Notes in that file)
+- `docs/02-data/dictionaries/dd-grades.md` reconciled from a global lookup table design to Program-scoped (v2.0, Task 1.2 — see Revision Notes in that file); soft-delete-vs-force-delete cascade wording clarified in Business Rule #5
 - `docs/05-backlog/epic-01-academic-domain.md` Grade Data Dictionary Summary updated to match the Program-scoped design
+- `docs/02-data/relationships.md`: added the missing `Program` section (Academic Domain previously started at `Grade`); changed `RESTRICT` → `CASCADE DELETE` for `Unit→Grade`, `Topic→Unit`, `LearningObjective→Topic` per the approved Architecture Decision Brief (`DEBT-004`, Resolved: Option A — Cascade Delete for the `Program→Grade→Unit→Topic→Learning Objective` ownership tree); added an explicit rule that soft deletes never cascade automatically; updated the mermaid diagram and eager-loading example to start from `Program`
 
 ### Fixed
 - Program's View page (`ViewProgram.php`) threw a fatal error on every visit due to an invalid static call on a trait; now renders correctly with an Edit header action
