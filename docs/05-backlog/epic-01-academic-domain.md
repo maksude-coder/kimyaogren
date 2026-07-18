@@ -44,10 +44,14 @@
 ## Data Dictionary Summary
 
 ### Grade
+
+> **Program-scoped** (Architecture Decision Brief, approved — see `docs/05-backlog/debt-log.md` `DEBT-003`, Resolved). Each Program independently owns its own Grade rows; `number` is unique per Program, not globally. Full detail: `docs/02-data/dictionaries/dd-grades.md`.
+
 | Column | Type | Constraints |
 |--------|------|-------------|
 | id | BIGINT UNSIGNED | PK, AI |
-| number | TINYINT UNSIGNED | NOT NULL, UNIQUE (9-12) |
+| program_id | BIGINT UNSIGNED | NOT NULL, FK → programs.id, CASCADE |
+| number | TINYINT UNSIGNED | NOT NULL, UNIQUE per Program (e.g. 9-12, or 5-8) |
 | name | VARCHAR(50) | NOT NULL |
 | description | TEXT | NULLABLE |
 | order | SMALLINT UNSIGNED | DEFAULT 0 |

@@ -12,6 +12,7 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 |----|-------|--------|----------|-------|--------|--------|
 | DEBT-001 | Roadmap/backlog synchronization for the Program domain | Open | Medium | PM | Sprint 1 | Before Sprint 1 retrospective |
 | DEBT-002 | `program_translations` recommendation vs. JSON-column implementation never reconciled | Open | Low | Architect | Sprint 1 | Unscheduled |
+| DEBT-003 | `dd-grades.md` predates the Program-rooted hierarchy; `program_id` / uniqueness scope undecided | **Resolved** | High | Architect | Sprint 1 (found during Sprint 1.2 kickoff prep) | Resolved before Task 1.2 start |
 
 ---
 
@@ -63,6 +64,37 @@ Choosing between a normalized translations table and JSON columns is an architec
 
 - `docs/01-architecture/domain-program.md` (§ 3 "Translations Structure", § 7 "Recommendations" — both annotated with a "not implemented" note)
 - `docs/02-data/dictionaries/dd-program.md` (Review Notes)
+
+---
+
+## DEBT-003: `dd-grades.md` Predates the Program-Rooted Hierarchy — RESOLVED
+
+### Resolution
+
+**Status: Resolved.** An Architecture Decision Brief was prepared evaluating two options — Option A (global Grade lookup table) vs. Option B (Program-scoped Grade entity) — across domain correctness, scalability, database design, Laravel relationships, admin UX, curriculum flexibility, migration complexity, and future maintenance.
+
+**Decision: Option B — Program-Scoped Grade Entity — approved.** This is now the project's architectural baseline for the `Grade` entity.
+
+Key reasons: Option B requires zero changes to the already-shipped, closed Task 1.1 code (`Program::grades(): HasMany` was already correct as written); Option A would have required reopening closed Task 1.1 work to reverse that relationship to `BelongsToMany`. Option A was also already contradicted by committed data: `MS_SCI_TR` ("Middle School Science", seeded in Task 1.1 with `min_grade: 5, max_grade: 8`) cannot be represented in a global 4-row (grades 9–12 only) lookup table.
+
+`docs/02-data/dictionaries/dd-grades.md` has been updated to reflect Option B: `program_id` added as a required FK, uniqueness changed to `(program_id, number)`, and the "only 4 records" rule replaced with a program-scoped rule tied to `programs.min_grade`/`programs.max_grade`. `docs/05-backlog/epic-01-academic-domain.md`'s Grade summary table was updated to match. No migration exists yet — the actual `grades` table will be created in Task 1.2 following the now-corrected dictionary.
+
+### Description (original finding, kept for history)
+
+`docs/02-data/dictionaries/dd-grades.md` (Created: 2024-01-15 — before `dd-program.md`, Created: 2025-07-17) documents `grades` as a **global** lookup table: no `program_id` column, a globally `UNIQUE` `number` column, and a business rule stating "Only 4 records expected (one per grade)".
+
+This contradicted the architecture actually built for `Program`: `Program::grades(): HasMany` (see `app/Models/Program.php`, and `docs/01-architecture/domain-program.md` § 4, mermaid: `PROGRAM ||--o{ GRADE : contains`) — a `HasMany` requires a `grades.program_id` foreign key, and implies grade records belong to one specific Program (so grade "9" for Program A and grade "9" for Program B would be two different rows), which is incompatible with a globally unique `number` column and "only 4 records" business rule.
+
+### Why This Wasn't Fixed Immediately (at time of discovery)
+
+This was discovered while preparing the Sprint 1.2 kickoff package (checking whether Grade's Data Dictionary was ready for implementation), not during Task 1.1 (Grade was explicitly out of scope for Task 1.1). Deciding the correct model — `Program hasMany Grade` (grade rows scoped per program) vs. `Program belongsToMany Grade` (4 global grade levels, shared across programs via a pivot) — was an architecture decision, not something to resolve unilaterally while writing a kickoff package. It was escalated as an Architecture Decision Brief instead — see "Resolution" above.
+
+### Related Records
+
+- `docs/04-sprints/sprint-02-plan.md` (Sprint 1.2 kickoff package — "Open Architectural Decisions"; to be updated to reflect this resolution)
+- `docs/02-data/dictionaries/dd-grades.md` (updated to Option B, v2.0)
+- `docs/05-backlog/epic-01-academic-domain.md` (Grade Data Dictionary Summary, updated to match)
+- `docs/01-architecture/domain-program.md` § 4 "Relationships" (already matched Option B; no change needed)
 
 ---
 

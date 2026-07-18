@@ -42,7 +42,9 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - Sprint 1, Task 1.0: Panel Authorization Infrastructure — `App\Enums\UserRole` (matching the enum already documented in `docs/02-data/enums.md` but never created), `App\Policies\ProgramPolicy` restricting Program CRUD to `admin` / `content_editor` roles, `User::canAccessPanel()` (`FilamentUser` contract) restricting Filament admin panel access to `admin` / `content_editor` roles — see `docs/04-sprints/sprint-01-review.md`
 - Sprint 1, Task 1.1: Program domain (migration, model, factory, seeder, Filament resource, feature tests)
 - `docs/04-sprints/sprint-01-review.md`: Sprint 1 review record (Task 1.0 + Task 1.1 acceptance, recorded deviations)
-- `docs/05-backlog/debt-log.md`: technical debt register, opening `DEBT-001` (roadmap/backlog synchronization for the Program domain)
+- `docs/04-sprints/sprint-01-retro.md`: Sprint 1 retrospective (what went well/should improve, lessons learned promoted to permanent practices, action items)
+- `docs/04-sprints/sprint-02-plan.md`: Sprint 1.2 kickoff package (proposed Grade domain scope, carried-forward debt, open architectural decisions, implementation plan, risks/prerequisites) — pending PM/Architect sign-off
+- `docs/05-backlog/debt-log.md`: technical debt register, opening `DEBT-001` (roadmap/backlog synchronization for the Program domain), `DEBT-002` (translations table vs. JSON columns), and `DEBT-003` (`dd-grades.md` predates the Program-rooted hierarchy — found while preparing the Sprint 1.2 kickoff package)
 
 ### Changed
 - `docs/02-data/dictionaries/dd-program.md` reconciled with the actual Task 1.1 implementation (see "Review Notes" section in that file for details)
