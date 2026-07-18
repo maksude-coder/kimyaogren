@@ -1,6 +1,6 @@
 # Sprint 1.2 Kickoff Package — Proposed: Grade Domain Implementation
 
-> **Status: DRAFT — Grade's global-vs-program-scoped question (formerly "Decision A") is now RESOLVED (Architecture Decision Brief, approved: Option B — Program-Scoped Grade Entity; see `docs/05-backlog/debt-log.md` `DEBT-003`). PM scope approval for Sprint 1.2 is still pending.** This package proposes a scope and plan for Sprint 1.2; it does not itself authorize the sprint. Per `docs/05-backlog/README.md` Decision Rights, "What to build next" is a PM decision — this document is input to that decision, not a substitute for it.
+> **Status: IMPLEMENTED — pending Sprint Review approval.** PM approved Sprint 1.2 scope (Grade only) and the architectural baseline (Program-scoped Grade, see `DEBT-003`); implementation is complete per § 4 below. Awaiting Sprint Review sign-off before commit.
 
 ## Sprint Goal (Proposed)
 > Implement the `Grade` entity (9th–12th grade levels) as the second layer of the academic curriculum hierarchy (`Program → Grade → Unit → Topic → Learning Objective`), following the same lifecycle Task 1.1 used for `Program`.
@@ -51,16 +51,20 @@ The Sprint 1.2 implementation plan below is written to apply the five permanent 
 
 Mirrors the Task 1.1 lifecycle (per `docs/ai/09-task-workflow.md`): Data Dictionary Review → Migration → Model → Factory → Seeder → Filament Resource → Tests → Documentation Update.
 
-| Step | Deliverable | Notes |
-|------|-------------|-------|
-| 1 | ~~Reconcile `dd-grades.md`~~ — **Done** ahead of this plan (see § 2) | Reconciled to Program-scoped design; no longer a Task 1.2 step |
-| 2 | Migration: `create_grades_table` | Column order per `naming-conventions.md` § "Migration Column Order (Mandatory)"; `program_id` FK to `programs` with `cascadeOnDelete()`, per reconciled `dd-grades.md` |
-| 3 | `App\Models\Grade` | Fillable, casts, relationships (`program(): BelongsTo`, `units(): HasMany` forward-declared per the same accepted pattern as `Program::grades()`/`media()`), scopes only — no business logic, per Task 1.1's own constraint |
-| 4 | `GradeFactory` | Must enforce reconciled business rules (grade `number` within the owning Program's `min_grade`/`max_grade`; uniqueness scoped to `program_id`) |
-| 5 | `GradeSeeder` | Seed per `docs/05-backlog/epic-01-academic-domain.md` MEB structure target, scoped to the relevant Program(s) (e.g. 9–12 for `HS_CHEM_TR`, 5–8 for `MS_SCI_TR`) |
-| 6 | `GradeResource` (Filament) | List/Create/Edit/View, following `ProgramResource` as the reference implementation; reuse `GradePolicy` pattern from `ProgramPolicy` (Task 1.0) — `admin` / `content_editor` only |
-| 7 | Feature tests | Create, update, delete, validation, soft delete, **and at least one real HTTP-level authorization test** (lesson learned #1) |
-| 8 | Documentation update | `changelog.md` (`dd-grades.md` and `domain-program.md` are already reconciled — no further change expected here unless implementation reveals new drift) |
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | ~~Reconcile `dd-grades.md`~~ — **Done** ahead of this plan (see § 2) | Done |
+| 2 | Migration: `database/migrations/2026_07_18_090000_create_grades_table.php` | Done — `program_id` FK `cascadeOnDelete()`, composite `unique(program_id, number)`, tested with `migrate:fresh` and `migrate:rollback` |
+| 3 | `app/Models/Grade.php` | Done — `program(): BelongsTo`, `units(): HasMany` (forward-declared, `Unit` model not yet built), `creator()`/`updater()`, `active()`/`ordered()` scopes only, no business logic |
+| 4 | `database/factories/GradeFactory.php` | Done — `number` resolved from the owning Program's `min_grade`/`max_grade` via a factory closure (nested factory relationships resolve first), not picked independently |
+| 5 | `database/seeders/GradeSeeder.php` | Done — seeds every seeded Program's full grade range, with real Turkish names for `HS_CHEM_TR` (9–12) and `MS_SCI_TR` (5–8) per `dd-grades.md` Sample Data, generic `"{number}. Sınıf"` for the rest |
+| 6 | `app/Filament/Resources/Grades/*`, `app/Policies/GradePolicy.php` | Done — List/Create/Edit/View pages, mirrors `ProgramResource` structure; `GradePolicy` mirrors `ProgramPolicy` (`admin`/`content_editor` only) |
+| 7 | `tests/Feature/GradeTest.php` | Done — 14 tests: create/update/delete/soft-delete, program-scoped uniqueness (both a same-program collision test and a cross-program non-collision test), range validation, factory range enforcement, scopes, cascade delete, **plus two real HTTP-level authorization tests** (student, teacher) satisfying lesson learned #1 |
+| 8 | Documentation update | This document + `docs/00-project/changelog.md` |
+
+### Finding During Implementation (fixed within this task, not deferred)
+
+`GradeForm.php`'s `number` field had `minValue`/`maxValue` range validation but **no uniqueness validation** — the DB-level `unique(program_id, number)` constraint existed, but nothing surfaced it as a friendly Filament form error, meaning a duplicate would have thrown a raw `QueryException` instead. Fixed by adding a Program-scoped `->unique(modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('program_id', $get('program_id')))` rule. This is an implementation completeness gap (matching an already-approved DB constraint to its form-level validation), not a new architectural question, so it was fixed directly rather than escalated as an Architecture Decision Brief. Covered by `test_grade_number_must_be_unique_within_program` and `test_grade_number_can_repeat_across_different_programs`.
 
 ### Explicit Constraints (carried from Task 1.1's pattern)
 
@@ -72,22 +76,23 @@ Mirrors the Task 1.1 lifecycle (per `docs/ai/09-task-workflow.md`): Data Diction
 
 ## 5. Risks & Prerequisites
 
-| Risk / Prerequisite | Type | Mitigation |
-|----------------------|------|------------|
-| `GradePolicy` / panel authorization repeats the Task 1.0 gap if copy-pasted incorrectly | Risk | Reuse `ProgramPolicy` structure exactly; verify with a real HTTP-level test per lesson #1, not just `Livewire::test()` |
-| `dd-grades.md` reconciliation reveals further drift (e.g. SEO fields, `is_active` semantics) beyond the `program_id` question | Risk | Time-box the reconciliation step; log any further findings as new `DEBT-` items rather than blocking the whole task |
-| Roadmap/backlog still doesn't list a home for Grade-domain work (`DEBT-001` unresolved) | Risk (non-blocking) | Sprint 1.2 can proceed under the same "Task 1.x" ad-hoc numbering used for Task 1.0/1.1; formal backlog placement remains PM's responsibility per `DEBT-001` |
-| PHP/tooling environment (Herd PHP 8.4, `PAO_DISABLE=1` needed for raw PHPUnit output) is undocumented outside this conversation | Risk | Should be captured in project setup docs so the next session doesn't have to rediscover it |
+| Risk / Prerequisite | Type | Outcome |
+|----------------------|------|---------|
+| `GradePolicy` / panel authorization repeats the Task 1.0 gap if copy-pasted incorrectly | Risk | Mitigated — `GradePolicy` mirrors `ProgramPolicy` exactly, and both `test_student_cannot_access_grades` and `test_teacher_cannot_access_admin_panel_for_grades` verify via real `$this->get(route(...))` HTTP requests, not `Livewire::test()` alone |
+| `dd-grades.md` reconciliation reveals further drift beyond the `program_id` question | Risk | Materialized in a smaller form: the form was missing scoped-uniqueness validation (see "Finding During Implementation" above) — fixed directly, not a `DEBT-` item, since it wasn't left open |
+| Roadmap/backlog still doesn't list a home for Grade-domain work (`DEBT-001` unresolved) | Risk (non-blocking) | Unchanged — still tracked in `DEBT-001`, did not block Task 1.2 |
+| PHP/tooling environment (Herd PHP 8.4, `PAO_DISABLE=1` needed for raw PHPUnit output) is undocumented outside this conversation | Risk | Still open — out of scope for this task; candidate for a future `DEBT-` item if it recurs |
 
 ---
 
-## 6. Sign-Off Required Before Task 1.2 Starts
+## 6. Sign-Off
 
-| Role | Decision Needed |
-|------|------------------|
-| Architect | ~~Rule on Decision A~~ — **Done** (Option B approved, see `DEBT-003`) |
-| PM | Approve Sprint 1.2 scope (Grade only) and confirm priority against `DEBT-001`/roadmap placement |
+| Role | Decision Needed | Status |
+|------|------------------|--------|
+| Architect | Rule on Decision A | Done (Option B approved, see `DEBT-003`) |
+| PM | Approve Sprint 1.2 scope (Grade only) | Done |
+| PM | Approve implementation via Sprint Review | Pending — see `docs/04-sprints/sprint-02-review.md` |
 
 ---
 
-*This is a proposed kickoff package, not an approved sprint plan. Convert to an approved plan by recording the Architect's and PM's decisions above, then updating the Sprint Backlog table with committed points and assignee.*
+*Implementation complete. Pending Sprint Review approval before commit.*

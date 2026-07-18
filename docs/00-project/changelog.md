@@ -43,17 +43,22 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - Sprint 1, Task 1.1: Program domain (migration, model, factory, seeder, Filament resource, feature tests)
 - `docs/04-sprints/sprint-01-review.md`: Sprint 1 review record (Task 1.0 + Task 1.1 acceptance, recorded deviations)
 - `docs/04-sprints/sprint-01-retro.md`: Sprint 1 retrospective (what went well/should improve, lessons learned promoted to permanent practices, action items)
-- `docs/04-sprints/sprint-02-plan.md`: Sprint 1.2 kickoff package (proposed Grade domain scope, carried-forward debt, open architectural decisions, implementation plan, risks/prerequisites) — pending PM/Architect sign-off
+- `docs/04-sprints/sprint-02-plan.md`: Sprint 1.2 kickoff package (proposed Grade domain scope, carried-forward debt, open architectural decisions, implementation plan, risks/prerequisites) — implemented, pending Sprint Review approval
 - `docs/05-backlog/debt-log.md`: technical debt register, opening `DEBT-001` (roadmap/backlog synchronization for the Program domain), `DEBT-002` (translations table vs. JSON columns), and `DEBT-003` (`dd-grades.md` predates the Program-rooted hierarchy — found while preparing the Sprint 1.2 kickoff package)
+- Sprint 1.2, Task 1.2: Grade domain (migration, model, factory, seeder, Filament resource, feature tests) — Program-scoped per the approved Architecture Decision Brief (`DEBT-003`, Resolved): `program_id` FK, `unique(program_id, number)`, `Program::grades(): HasMany` / `Grade::program(): BelongsTo`
+- `docs/04-sprints/sprint-02-review.md`: Sprint 1.2 review record
 
 ### Changed
 - `docs/02-data/dictionaries/dd-program.md` reconciled with the actual Task 1.1 implementation (see "Review Notes" section in that file for details)
 - `docs/01-architecture/domain-program.md` relationship table reconciled to match the actual implementation (removed undelivered `translations`/`enrollments` entries); added a note on the `grades` / `media` forward declarations
+- `docs/02-data/dictionaries/dd-grades.md` reconciled from a global lookup table design to Program-scoped (v2.0, Task 1.2 — see Revision Notes in that file)
+- `docs/05-backlog/epic-01-academic-domain.md` Grade Data Dictionary Summary updated to match the Program-scoped design
 
 ### Fixed
 - Program's View page (`ViewProgram.php`) threw a fatal error on every visit due to an invalid static call on a trait; now renders correctly with an Edit header action
 - `ProgramFactory` and `ProgramSeeder` double-JSON-encoded the `settings` / `supported_languages` attributes, which are already cast to `array` on the model, corrupting stored data
 - Filament admin panel had no real authorization: with no Policy and no `FilamentUser` implementation, Filament's default behavior blocked every user (including admins) outside the `local` environment, and allowed every authenticated user (including students) inside it
+- `GradeForm`'s `number` field had range validation but no uniqueness validation, so a program-scoped duplicate would have thrown a raw `QueryException` instead of a friendly form error; added a `program_id`-scoped `unique()` rule
 
 ---
 

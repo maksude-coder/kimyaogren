@@ -217,19 +217,19 @@ erDiagram
 |--------------|------|--------|-------------|---------|-------|
 | `versions` | HasMany | ProgramVersion | 1:N | DELETE CASCADE | Immutable snapshots |
 | `currentVersion` | BelongsTo | ProgramVersion | 1:1 | SET NULL | Current published snapshot |
-| `grades` | HasMany | Grade | 1:N | DELETE CASCADE | Grade levels in program — see Architectural Note below |
+| `grades` | HasMany | Grade | 1:N | DELETE CASCADE | Grade levels in program — implemented Task 1.2, see Architectural Note below |
 | `users` | BelongsToMany | User | N:M | DETACH | Via `user_programs` pivot (enrollments) |
 | `creator` | BelongsTo | User | N:1 | SET NULL | `created_by_id` |
 | `updater` | BelongsTo | User | N:1 | SET NULL | `updated_by_id` |
-| `media` | MorphMany | Media | 1:N | DELETE CASCADE | Logo, banner images — see Architectural Note below |
+| `media` | MorphMany | Media | 1:N | DELETE CASCADE | Logo, banner images — still forward-declared, see Architectural Note below |
 
 > **Note:** `translations` (ProgramTranslation) and a separate `enrollments` relationship were removed from this table during Task 1.1 reconciliation — no such table/relationship was implemented. Localization is handled by the `primary_language` / `supported_languages` JSON columns on `programs`, and enrollment is fully expressed by the `users` relationship above. See `docs/02-data/dictionaries/dd-program.md` (Review Notes) for the full explanation.
 
 ### Architectural Note: Forward-Declared Relationships (Task 1.1, approved)
 
-`grades` and `media` are intentionally declared on the `Program` model as part of the approved domain model (the `Program → Grade → Unit → Topic → Learning Objective` hierarchy defined in this document, and the media library described in `domain-media.md`). The `Grade` and `Media` models do not exist yet — implementing them is out of scope for Task 1.1 by explicit constraint.
+`grades` and `media` were declared on the `Program` model in Task 1.1 as part of the approved domain model (the `Program → Grade → Unit → Topic → Learning Objective` hierarchy defined in this document, and the media library described in `domain-media.md`), before the `Grade` and `Media` models existed — implementing them was out of scope for Task 1.1 by explicit constraint.
 
-These relationships are currently unused, so no runtime failure occurs in the current implementation (Eloquent relationship methods are not resolved until called). Their implementation will be completed when the `Grade` and `Media` domains are introduced in a future sprint; at that point, the owning task's Definition of Ready should include a check that `Program::grades()` / `Program::media()` resolve correctly against the new models.
+**Update (Task 1.2):** `Grade` has since been implemented — Program-scoped, per the Architecture Decision Brief resolving `DEBT-003` (see `docs/05-backlog/debt-log.md`). `Program::grades(): HasMany` required no code change; it was already correct under the approved design. `media` remains forward-declared; `Media` does not exist yet, and its implementation will be completed when the Media domain is introduced in a future sprint, per the same accepted pattern.
 
 This was reviewed and accepted as a recorded deviation in the Sprint 1 approval (see `docs/04-sprints/sprint-01-review.md`); it is intentionally documented here rather than as a separate ADR, since it does not introduce a new architectural pattern — it simply defers completion of an already-approved relationship.
 

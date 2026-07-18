@@ -72,8 +72,8 @@ Corresponding relationship on the parent, already implemented in `app/Models/Pro
 2. Each Program independently has one row per grade level it covers — **not** a fixed count of 4; e.g. a high-school Program has 4 rows (9–12), a middle-school Program has 4 rows (5–8), an IB Program may have 2 rows (11–12)
 3. `number` is unique **within a Program**, not globally — the same number (e.g. 9) legitimately exists as separate rows for different Programs
 4. `order` determines navigation sequence within the owning Program
-5. Deleting a Program cascades to its Grades (and onward to Units, Topics, Objectives via `deleted_at`/`ON DELETE CASCADE`)
-6. Soft deletes preserve historical data
+5. Soft-deleting a Program does **not** cascade — its Grades remain untouched (verified empirically: `deleted_at` on `programs` does not affect `grades` rows). Only a hard delete (`forceDelete()`) cascades via the DB's `ON DELETE CASCADE` on `grades.program_id`, permanently removing the Program's Grades (and onward to Units, Topics, Objectives once those FKs exist)
+6. Soft deletes preserve historical data — this is why routine deletion should always be a soft delete, not a force delete, if the Grade history needs to survive a Program being removed
 7. SEO fields for public curriculum pages
 
 ## Sample Data
