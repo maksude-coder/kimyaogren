@@ -79,6 +79,7 @@
 | slug | VARCHAR(120) | NOT NULL, UNIQUE(unit_id) |
 | description | TEXT | NULLABLE |
 | order | SMALLINT UNSIGNED | DEFAULT 0 |
+| difficulty | TINYINT UNSIGNED | DEFAULT 3 (1-5) |
 | status | TINYINT UNSIGNED | DEFAULT 1 (1=Draft,2=Published,3=Archived) |
 | is_active | BOOLEAN | DEFAULT TRUE |
 | meta_title | VARCHAR(60) | NULLABLE |

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ProgramSeeder::class,
             GradeSeeder::class,
             UnitSeeder::class,
+            TopicSeeder::class,
         ]);
 
         User::factory()->create([

@@ -15,6 +15,8 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-003 | `dd-grades.md` predates the Program-rooted hierarchy; `program_id` / uniqueness scope undecided | **Resolved** | High | Architect | Sprint 1 (found during Sprint 1.2 kickoff prep) | Resolved before Task 1.2 start |
 | DEBT-004 | `docs/02-data/relationships.md` disagreed with the dictionaries on `Grade`→`Unit`→`Topic`→`Learning Objective` cascade delete behavior (RESTRICT vs. CASCADE), and was missing a `Program` section entirely | **Resolved** | High | Architect | Sprint 1.3 planning | Resolved before Sprint 1.3 plan finalized |
 | DEBT-005 | `docs/02-data/relationships.md` (Academic Domain, Topic→`questions`) says `CASCADE DELETE`; `docs/02-data/dictionaries/dd-questions.md` and `relationships.md`'s own Assessment Domain section say `RESTRICT` for the same `topic_id` FK | Open | Medium | Architect | Sprint 1.3 planning (found during `DEBT-004` cross-check) | Before Assessment domain (Question) implementation |
+| DEBT-006 | `epic-01-academic-domain.md`'s Technical Requirements specify a nested "RelationManager" Filament UX (e.g. "Unit: Topics RelationManager"), but Grade/Unit/Topic all shipped as standalone resources instead | Open | Low | PM/Architect | Sprint 1.3 planning | Unscheduled — UX pass, not a data-model conflict |
+| DEBT-007 | `ProgramStatus::options()` (and, until fixed in Sprint 1.4, `TopicStatus::options()`) used `array_column(self::cases(), 'label', 'value')` — `label` is a method, not a property, so `array_column` silently returns an **empty array**. Confirmed broken in shipped, committed code: `ProgramsTable`'s status `SelectFilter` has zero selectable options right now. | Open | High | Architect | Sprint 1.4 (found while implementing `TopicStatus`) | Before next Program-domain touch, or immediately if prioritized |
 
 ---
 
@@ -145,6 +147,80 @@ While reconciling `DEBT-004`, a second, structurally identical inconsistency was
 
 - `docs/02-data/relationships.md` (Academic Domain § Topic, Assessment Domain § Question)
 - `docs/02-data/dictionaries/dd-questions.md`, `dd-question-attempts.md`
+
+---
+
+## DEBT-006: RelationManager (epic-01) vs. Standalone-Resource (Shipped) Filament Pattern
+
+### Description
+
+`docs/05-backlog/epic-01-academic-domain.md`'s Technical Requirements specify nested Filament RelationManagers for the curriculum hierarchy: "Grade: Units RelationManager", "Unit: Topics RelationManager", "Topic: LearningObjectives RelationManager". `ProgramResource`, `GradeResource`, `UnitResource`, and `TopicResource` (Tasks 1.1–1.4) all shipped instead as standalone resources with a parent-select filter/column (e.g. a "Program" filter on the Grades list), and `getRelations(): []` on every resource — no RelationManager has been built for any of them.
+
+### Why This Wasn't Fixed Immediately
+
+This is a UX/navigation-pattern choice, not a data-model or architectural conflict — both approaches work against the same schema. Choosing between them (or offering both) is a product/UX decision for PM, not something to resolve unilaterally mid-implementation. The standalone-resource pattern was continued for each new entity (Grade, then Unit, then Topic) purely for consistency with what was already shipped, not because a decision was made that RelationManagers are wrong.
+
+### Recommended Resolution
+
+- PM/Architect to decide: keep the standalone-resource pattern as the permanent design (update `epic-01-academic-domain.md`'s Technical Requirements to match reality), or invest in adding RelationManagers as a dedicated UX pass across `ProgramResource`/`GradeResource`/`UnitResource`/`TopicResource` together (cheaper to do once, across all four, than piecemeal).
+- Not urgent — the standalone pattern is fully functional today (filters + navigation work); this is a UX-consistency cleanup, not a bug.
+
+### Related Records
+
+- `docs/04-sprints/sprint-03-plan.md`, `sprint-04-plan.md` (both note the precedent being continued)
+- `app/Filament/Resources/Programs`, `Grades`, `Units`, `Topics` (all standalone, `getRelations(): []`)
+
+---
+
+## DEBT-007: `*Status::options()` Enums Silently Return an Empty Array
+
+### Description
+
+`ProgramStatus::options()` and (until fixed during this task) `TopicStatus::options()` were implemented as:
+
+```php
+public static function options(): array
+{
+    return array_column(self::cases(), 'label', 'value');
+}
+```
+
+`array_column()` only reads **public properties**, not method calls — `label` is a method (`label(): string`) on both enums, not a property. Since the "label" column doesn't exist as a property, PHP's `array_column()` silently returns an **empty array** rather than throwing or warning.
+
+**Confirmed broken in already-shipped, committed code** (verified via `php artisan tinker`, not assumed):
+```php
+>>> App\Enums\ProgramStatus::options()
+array(0) { }
+```
+This means `app/Filament/Resources/Programs/Tables/ProgramsTable.php`'s status `SelectFilter` (`->options(ProgramStatus::options())`) has had **zero selectable options** since it shipped in Task 1.1/1.2 — the filter dropdown renders empty. This was never caught because no `ProgramTest` exercises the filter's rendered option list (tests that submit a `status` value go through `ProgramForm`'s Select, which uses a hardcoded options array, not `ProgramStatus::options()` — a different, unaffected code path).
+
+`TopicStatus::options()` had the identical bug, but was caught immediately in this task because `TopicForm`/`TopicsTable` **do** call `TopicStatus::options()` directly — every Topic create/update test failed with "The selected status is invalid." until fixed (see `docs/04-sprints/sprint-04-review.md`).
+
+### Why This Wasn't Fixed in `ProgramStatus` As Part of This Task
+
+Sprint 1.4's explicit constraint is "do not modify Program/Grade/Unit code except where strictly required by the new Topic relationship." Fixing `ProgramStatus.php` is not required for Topic to function — `TopicStatus` is a separate file, already fixed. Silently patching unrelated, previously-approved Program code without being asked crosses the same line this project's process has repeatedly drawn (e.g. `DEBT-002`, `DEBT-005`) between "fix directly" (implementation-completeness gaps in the current task) and "flag and ask" (anything outside the current task's approved scope) — this bug is real and user-impacting, but it's in already-closed Task 1.1/1.2 work, not Topic.
+
+### Recommended Resolution
+
+- Fix `ProgramStatus::options()` using the same pattern now used in `TopicStatus::options()`:
+  ```php
+  public static function options(): array
+  {
+      return array_combine(
+          array_map(fn (self $case) => $case->value, self::cases()),
+          array_map(fn (self $case) => $case->label(), self::cases()),
+      );
+  }
+  ```
+- Add a regression test asserting `ProgramStatus::options()` (and any future status-style enum's `options()`) returns a non-empty array matching all cases — this class of bug is otherwise invisible to the existing test suite.
+- Low implementation risk, high user impact (a currently-broken admin filter) — recommend prioritizing this fix explicitly rather than leaving it for the next unrelated Program-domain task.
+
+### Related Records
+
+- `app/Enums/ProgramStatus.php` (bug still present)
+- `app/Enums/TopicStatus.php` (fixed, Sprint 1.4)
+- `app/Filament/Resources/Programs/Tables/ProgramsTable.php` (the affected, currently-broken filter)
+- `docs/04-sprints/sprint-04-review.md` (where this was found and the fix verified for Topic)
 
 ---
 

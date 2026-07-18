@@ -52,6 +52,10 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - `docs/01-architecture/ownership-model.md`: canonical reference for the academic domain's aggregate root, ownership tree, cascade/soft-delete/force-delete strategy
 - Sprint 1.3, Task 1: Unit domain (migration, model, factory, seeder, Filament resource, policy, feature tests) — Grade-scoped: `grade_id` FK `cascadeOnDelete()`, `unique(grade_id, code)`, `Grade::units(): HasMany` / `Unit::grade(): BelongsTo`, per the ownership model and `DEBT-004`
 - `docs/04-sprints/sprint-03-review.md`: Sprint 1.3 Task 1 review record — Approved
+- `docs/04-sprints/sprint-04-plan.md`: Sprint 1.4 plan (Topic domain) — approved, no architectural inconsistency found
+- Sprint 1.4, Task 1: Topic domain (`App\Enums\TopicStatus`, migration, model, factory, seeder, Filament resource, policy, feature tests) — Unit-scoped: `unit_id` FK `cascadeOnDelete()`, `unique(unit_id, slug)`, auto-slug-from-name (mirrors `Program`), `status`/`is_active` combined `published()` scope (mirrors `Program::scopePublished()`), `difficulty` (1–5). Deliberately does **not** forward-declare `questions()`/`theoryArticles()` relationships (Assessment/Content domains, not yet implemented) — a stricter application of "no gold-plating" than the earlier `Program::media()` precedent.
+- `docs/05-backlog/debt-log.md`: `DEBT-006` (RelationManager vs. standalone-resource pattern, properly recorded — previously only mentioned in this changelog, not the register itself) and `DEBT-007` (`*Status::options()` enums silently returning an empty array due to `array_column()` misuse — fixed in `TopicStatus`, confirmed still broken in already-shipped `ProgramStatus`)
+- `docs/04-sprints/sprint-04-review.md`: Sprint 1.4 Task 1 review record
 
 ### Changed
 - `docs/02-data/dictionaries/dd-program.md` reconciled with the actual Task 1.1 implementation (see "Review Notes" section in that file for details)
@@ -59,12 +63,14 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - `docs/02-data/dictionaries/dd-grades.md` reconciled from a global lookup table design to Program-scoped (v2.0, Task 1.2 — see Revision Notes in that file); soft-delete-vs-force-delete cascade wording clarified in Business Rule #5
 - `docs/05-backlog/epic-01-academic-domain.md` Grade Data Dictionary Summary updated to match the Program-scoped design
 - `docs/02-data/relationships.md`: added the missing `Program` section (Academic Domain previously started at `Grade`); changed `RESTRICT` → `CASCADE DELETE` for `Unit→Grade`, `Topic→Unit`, `LearningObjective→Topic` per the approved Architecture Decision Brief (`DEBT-004`, Resolved: Option A — Cascade Delete for the `Program→Grade→Unit→Topic→Learning Objective` ownership tree); added an explicit rule that soft deletes never cascade automatically; updated the mermaid diagram and eager-loading example to start from `Program`
+- `docs/05-backlog/epic-01-academic-domain.md` Topic Data Dictionary Summary: added the missing `difficulty` row to match `dd-topics.md`
 
 ### Fixed
 - Program's View page (`ViewProgram.php`) threw a fatal error on every visit due to an invalid static call on a trait; now renders correctly with an Edit header action
 - `ProgramFactory` and `ProgramSeeder` double-JSON-encoded the `settings` / `supported_languages` attributes, which are already cast to `array` on the model, corrupting stored data
 - Filament admin panel had no real authorization: with no Policy and no `FilamentUser` implementation, Filament's default behavior blocked every user (including admins) outside the `local` environment, and allowed every authenticated user (including students) inside it
 - `GradeForm`'s `number` field had range validation but no uniqueness validation, so a program-scoped duplicate would have thrown a raw `QueryException` instead of a friendly form error; added a `program_id`-scoped `unique()` rule
+- `TopicStatus::options()` used `array_column(self::cases(), 'label', 'value')`, which silently returns an empty array since `label` is a method, not a property — every Topic create/update failed validation ("The selected status is invalid.") until fixed. The identical bug was found, confirmed via `tinker`, to already be broken in shipped `ProgramStatus::options()` (`ProgramsTable`'s status filter has had zero options since Task 1.1/1.2) — logged as `DEBT-007` rather than silently patched, since fixing `ProgramStatus` was outside this task's approved scope (Topic only)
 
 ---
 
