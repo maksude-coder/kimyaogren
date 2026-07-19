@@ -21,7 +21,10 @@ enum ProgramStatus: int
 
     public static function options(): array
     {
-        return array_column(self::cases(), 'label', 'value');
+        return array_combine(
+            array_map(fn (self $case) => $case->value, self::cases()),
+            array_map(fn (self $case) => $case->label(), self::cases()),
+        );
     }
 
     public function color(): string

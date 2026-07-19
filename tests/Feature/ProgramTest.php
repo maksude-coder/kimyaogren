@@ -382,4 +382,26 @@ class ProgramTest extends TestCase
         $forGrade = Program::forGrade(10)->count();
         $this->assertGreaterThan(0, $forGrade);
     }
+
+    /**
+     * Regression test for DEBT-007: the list page's "status" filter is
+     * backed by `ProgramStatus::options()`, which previously returned an
+     * empty array (see tests/Unit/StatusEnumTest.php for the direct enum
+     * regression coverage). This test proves the filter is wired up and
+     * actually narrows results end-to-end on the real list page, not just
+     * that the enum returns the right array in isolation.
+     */
+    public function test_admin_can_filter_program_list_by_status(): void
+    {
+        $this->actingAs($this->admin);
+
+        Program::factory()->draft()->count(2)->create();
+        Program::factory()->published()->count(3)->create();
+
+        Livewire::test(ListPrograms::class)
+            ->assertTableFilterExists('status')
+            ->filterTable('status', [ProgramStatus::Published->value])
+            ->assertCanSeeTableRecords(Program::where('status', ProgramStatus::Published)->get())
+            ->assertCanNotSeeTableRecords(Program::where('status', ProgramStatus::Draft)->get());
+    }
 }

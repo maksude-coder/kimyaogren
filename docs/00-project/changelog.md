@@ -56,6 +56,8 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - Sprint 1.4, Task 1: Topic domain (`App\Enums\TopicStatus`, migration, model, factory, seeder, Filament resource, policy, feature tests) — Unit-scoped: `unit_id` FK `cascadeOnDelete()`, `unique(unit_id, slug)`, auto-slug-from-name (mirrors `Program`), `status`/`is_active` combined `published()` scope (mirrors `Program::scopePublished()`), `difficulty` (1–5). Deliberately does **not** forward-declare `questions()`/`theoryArticles()` relationships (Assessment/Content domains, not yet implemented) — a stricter application of "no gold-plating" than the earlier `Program::media()` precedent.
 - `docs/05-backlog/debt-log.md`: `DEBT-006` (RelationManager vs. standalone-resource pattern, properly recorded — previously only mentioned in this changelog, not the register itself) and `DEBT-007` (`*Status::options()` enums silently returning an empty array due to `array_column()` misuse — fixed in `TopicStatus`, confirmed still broken in already-shipped `ProgramStatus`)
 - `docs/04-sprints/sprint-04-review.md`: Sprint 1.4 Task 1 review record
+- `docs/04-sprints/sprint-04-1-hotfix.md`: Hotfix Sprint 1.4.1 record — `ProgramStatus::options()` fix, isolated from Sprint 1.4's commit per PM decision (reclassified `DEBT-007` from technical debt to a verified production bug)
+- `tests/Unit/StatusEnumTest.php`: regression coverage for `ProgramStatus::options()` / `TopicStatus::options()` (6 tests)
 
 ### Changed
 - `docs/02-data/dictionaries/dd-program.md` reconciled with the actual Task 1.1 implementation (see "Review Notes" section in that file for details)
@@ -71,6 +73,7 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - Filament admin panel had no real authorization: with no Policy and no `FilamentUser` implementation, Filament's default behavior blocked every user (including admins) outside the `local` environment, and allowed every authenticated user (including students) inside it
 - `GradeForm`'s `number` field had range validation but no uniqueness validation, so a program-scoped duplicate would have thrown a raw `QueryException` instead of a friendly form error; added a `program_id`-scoped `unique()` rule
 - `TopicStatus::options()` used `array_column(self::cases(), 'label', 'value')`, which silently returns an empty array since `label` is a method, not a property — every Topic create/update failed validation ("The selected status is invalid.") until fixed. The identical bug was found, confirmed via `tinker`, to already be broken in shipped `ProgramStatus::options()` (`ProgramsTable`'s status filter has had zero options since Task 1.1/1.2) — logged as `DEBT-007` rather than silently patched, since fixing `ProgramStatus` was outside this task's approved scope (Topic only)
+- **(Hotfix Sprint 1.4.1)** `ProgramStatus::options()` had the identical empty-array bug as `TopicStatus::options()` above — the Program list page's status filter has had zero selectable options since Task 1.1/1.2 shipped. Fixed with the same `array_combine()`/`array_map()` pattern; `DEBT-007` closed. Regression tests added: `tests/Unit/StatusEnumTest.php` (enum-level) and `ProgramTest::test_admin_can_filter_program_list_by_status` (end-to-end filter test on the real list page)
 
 ---
 

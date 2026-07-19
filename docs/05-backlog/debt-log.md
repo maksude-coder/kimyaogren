@@ -16,7 +16,7 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-004 | `docs/02-data/relationships.md` disagreed with the dictionaries on `Grade`→`Unit`→`Topic`→`Learning Objective` cascade delete behavior (RESTRICT vs. CASCADE), and was missing a `Program` section entirely | **Resolved** | High | Architect | Sprint 1.3 planning | Resolved before Sprint 1.3 plan finalized |
 | DEBT-005 | `docs/02-data/relationships.md` (Academic Domain, Topic→`questions`) says `CASCADE DELETE`; `docs/02-data/dictionaries/dd-questions.md` and `relationships.md`'s own Assessment Domain section say `RESTRICT` for the same `topic_id` FK | Open | Medium | Architect | Sprint 1.3 planning (found during `DEBT-004` cross-check) | Before Assessment domain (Question) implementation |
 | DEBT-006 | `epic-01-academic-domain.md`'s Technical Requirements specify a nested "RelationManager" Filament UX (e.g. "Unit: Topics RelationManager"), but Grade/Unit/Topic all shipped as standalone resources instead | Open | Low | PM/Architect | Sprint 1.3 planning | Unscheduled — UX pass, not a data-model conflict |
-| DEBT-007 | `ProgramStatus::options()` (and, until fixed in Sprint 1.4, `TopicStatus::options()`) used `array_column(self::cases(), 'label', 'value')` — `label` is a method, not a property, so `array_column` silently returns an **empty array**. Confirmed broken in shipped, committed code: `ProgramsTable`'s status `SelectFilter` has zero selectable options right now. | Open | High | Architect | Sprint 1.4 (found while implementing `TopicStatus`) | Before next Program-domain touch, or immediately if prioritized |
+| DEBT-007 | `ProgramStatus::options()` (and, until fixed in Sprint 1.4, `TopicStatus::options()`) used `array_column(self::cases(), 'label', 'value')` — `label` is a method, not a property, so `array_column` silently returns an **empty array**. Confirmed broken in shipped, committed code: `ProgramsTable`'s status `SelectFilter` has zero selectable options right now. | **Resolved** | High | Architect | Sprint 1.4 (found while implementing `TopicStatus`) | Resolved in Hotfix Sprint 1.4.1 |
 
 ---
 
@@ -172,9 +172,31 @@ This is a UX/navigation-pattern choice, not a data-model or architectural confli
 
 ---
 
-## DEBT-007: `*Status::options()` Enums Silently Return an Empty Array
+## DEBT-007: `*Status::options()` Enums Silently Return an Empty Array — RESOLVED
 
-### Description
+### Resolution
+
+**Status: Resolved, via Hotfix Sprint 1.4.1 (isolated from Sprint 1.4's commit, per PM decision — this was reclassified from technical debt to a verified production bug affecting the shipped Program domain, not left for a future unrelated task).**
+
+`app/Enums/ProgramStatus.php`'s `options()` was rewritten to the same `array_combine()` + `array_map()` pattern already proven correct in `TopicStatus::options()`:
+```php
+public static function options(): array
+{
+    return array_combine(
+        array_map(fn (self $case) => $case->value, self::cases()),
+        array_map(fn (self $case) => $case->label(), self::cases()),
+    );
+}
+```
+Verified via `php artisan tinker`: `ProgramStatus::options()` now returns `[1 => 'Draft', 2 => 'Published', 3 => 'Archived']` instead of `[]`.
+
+**Regression coverage added:**
+- `tests/Unit/StatusEnumTest.php` — 6 tests asserting `ProgramStatus::options()` and `TopicStatus::options()` each return one entry per case, correctly keyed by `value` with `label()` as the value, plus a generic per-case contract check so this holds even if cases/labels change later.
+- `tests/Feature/ProgramTest.php::test_admin_can_filter_program_list_by_status` — an end-to-end test on the real `ListPrograms` page proving the status filter (the actual previously-broken code path) now correctly narrows results, not just that the enum returns the right array in isolation.
+
+Full project suite: 69/69 passing after the fix (no regressions).
+
+### Description (original finding, kept for history)
 
 `ProgramStatus::options()` and (until fixed during this task) `TopicStatus::options()` were implemented as:
 
@@ -217,10 +239,12 @@ Sprint 1.4's explicit constraint is "do not modify Program/Grade/Unit code excep
 
 ### Related Records
 
-- `app/Enums/ProgramStatus.php` (bug still present)
+- `app/Enums/ProgramStatus.php` (fixed, Hotfix Sprint 1.4.1)
 - `app/Enums/TopicStatus.php` (fixed, Sprint 1.4)
-- `app/Filament/Resources/Programs/Tables/ProgramsTable.php` (the affected, currently-broken filter)
+- `app/Filament/Resources/Programs/Tables/ProgramsTable.php` (the affected filter — now works)
 - `docs/04-sprints/sprint-04-review.md` (where this was found and the fix verified for Topic)
+- `docs/04-sprints/sprint-04-1-hotfix.md` (Hotfix Sprint 1.4.1 record — fix for `ProgramStatus`, regression tests, this resolution)
+- `tests/Unit/StatusEnumTest.php`, `tests/Feature/ProgramTest.php::test_admin_can_filter_program_list_by_status` (regression coverage)
 
 ---
 
