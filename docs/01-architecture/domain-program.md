@@ -92,6 +92,9 @@ Program (Root)
 | **Content Editor** | Can edit Draft/Published Programs in assigned subjects |
 
 ### Versioning
+
+> **Status: Deferred to a future Epic** — see `## 5. Lifecycle` below and ADR-003. Not implemented in Epic 1.
+
 | Rule | Specification |
 |------|---------------|
 | **Immutable Versions** | Published Programs are snapshotted as immutable versions |
@@ -245,6 +248,8 @@ This was reviewed and accepted as a recorded deviation in the Sprint 1 approval 
 ---
 
 ## 5. Lifecycle
+
+> **Status: Deferred to a future Epic (ADR-003 — `docs/06-adr/003-defer-program-lifecycle-versioning.md`).** Everything in this section (transition side effects, version snapshotting, the 30-day grace period) is the intended future design, not current Epic 1 behavior. Epic 1 implements only the `status` field itself (Draft/Published/Archived) and plain soft delete — no snapshotting, no archived-read-only enforcement, no retention job. Kept here unchanged as the ready-made spec for whichever future Epic implements it.
 
 ### State Diagram
 

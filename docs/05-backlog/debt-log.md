@@ -19,6 +19,9 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-007 | `ProgramStatus::options()` (and, until fixed in Sprint 1.4, `TopicStatus::options()`) used `array_column(self::cases(), 'label', 'value')` — `label` is a method, not a property, so `array_column` silently returns an **empty array**. Confirmed broken in shipped, committed code: `ProgramsTable`'s status `SelectFilter` has zero selectable options right now. | **Resolved** | High | Architect | Sprint 1.4 (found while implementing `TopicStatus`) | Resolved in Hotfix Sprint 1.4.1 |
 | DEBT-008 | `dd-learning-objectives.md` documented `code` as **globally** unique, but the `KIM.{grade}.{unit}.{topic}.{sequence}` format encodes only numbers, not which Program they belong to — the same class of issue as `DEBT-003`, one level deeper | **Resolved** | High | Architect | Sprint 1.5 planning | Resolved before Sprint 1.5 plan finalized |
 | DEBT-009 | `ProgramFactory`'s `name` field uses `$this->faker->unique()->randomElement([...15 fixed names...])`. Confirmed flaky (reproduced twice in ~6 runs): as the cumulative test suite grows (Grade/Unit/Topic/LearningObjective tests all indirectly create Programs via nested factory defaults), this small fixed pool intermittently produces `UNIQUE constraint failed: programs.name`. | **Resolved** | High | Architect | Sprint 1.5 (found running the full suite after Learning Objective tests were added) | Resolved in Hotfix Sprint 1.5.1 |
+| DEBT-010 | `program_versions` migration declared a `constrained()` FK to `programs` before `programs` existed. SQLite tolerated it; a fresh MySQL install would not. | **Resolved** | Critical | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved in Epic 1 Final Stabilization (2026-07-19) — migrations split into correct creation order |
+| DEBT-011 | `ProgramsTable`'s header `Action::make('export')` redirected to `route('filament.admin.resources.programs.export')`, a route that was never registered — clicking it in the admin UI threw `RouteNotFoundException`. No export architecture (package, controller, page) exists anywhere in the repo. | **Resolved** | High | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved same sprint — action removed |
+| DEBT-012 | `dd-program.md`'s Business Rules (#5, #6, #8) and `domain-program.md`'s full Lifecycle/Versioning section described publish-time immutable snapshots, archived-read-only enforcement, and a 30-day force-delete grace period as current requirements — but no code implemented any of it. | **Resolved (by decision)** | High | PM/Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Officially deferred to a future Epic — ADR-003, resolved 2026-07-19 |
 
 ---
 
@@ -328,6 +331,89 @@ Other full-suite runs in the same session passed cleanly (86/86) — this is int
 - `docs/04-sprints/sprint-05-review.md` (where this was found)
 - `docs/04-sprints/sprint-05-1-hotfix.md` (Hotfix Sprint 1.5.1 record — fix, regression test, this resolution)
 - `tests/Feature/ProgramTest.php::test_program_factory_can_create_more_than_fifteen_programs_without_name_collision` (regression coverage)
+
+---
+
+## DEBT-010: Invalid Program/ProgramVersion Migration FK Order (MySQL) — RESOLVED
+
+### Resolution
+
+**Status: Resolved, Epic 1 Final Stabilization (2026-07-19).** With explicit authorization to edit historical migrations (the project has never deployed to MySQL, and both files were only hours old), the schema was corrected using the standard Laravel pattern for two tables with a forward FK reference:
+
+1. `2026_07_17_180641_create_programs_table.php` — creates `programs` **without** `current_version_id` (moved out).
+2. `2026_07_17_180840_create_program_versions_table.php` — creates `program_versions` with its FK to `programs`, which now exists. Content otherwise unchanged from the original file.
+3. `2026_07_17_180845_add_current_version_id_to_programs_table.php` — new migration, adds `current_version_id` (nullable FK to `program_versions`) to `programs` now that both tables exist.
+
+The temporary corrective migration (`2026_07_22_090000_fix_program_versions_program_id_foreign_key.php`, added during the earlier stabilization pass) is no longer necessary and was deleted — the root cause is fixed at the source instead of patched after the fact.
+
+**Verification:** `migrate:fresh --seed` clean on SQLite; full test suite green (87/87); `vendor/bin/pint --test` clean. MySQL itself still could not be verified directly (no MySQL server available in this environment), but the specific failure mode (a forward FK reference inside a single already-shipped migration) no longer exists in any migration file — the fix removes the mechanism, not just its symptom.
+
+### Description (original finding, kept for history)
+
+`program_versions`' migration declared a `constrained()` FK to `programs`, but ran *before* `programs` was created. On SQLite this was harmless (SQLite does not validate a FK's target table exists at `CREATE TABLE` time). On MySQL, the FK compiles to a separate `ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY` statement, executed immediately after `CREATE TABLE program_versions` — while `programs` did not yet exist, which fails on a genuinely fresh MySQL database. First identified by GitHub Copilot Agent Repository Review; confirmed by reading `vendor/laravel/framework`'s `MySqlGrammar`/`Grammar::compileForeign`.
+
+Originally, editing the two historical migrations was out of scope for the sprint that found this, so a purely additive corrective migration was added instead — correct for any already-migrated database, but structurally unable to fix a bone-dry MySQL `migrate:fresh`, since the failing statement executes inside the original migration file, before any later migration runs. This was escalated rather than silently left as partially fixed, and resolved once editing historical migrations was explicitly authorized.
+
+### Related Records
+
+- `database/migrations/2026_07_17_180641_create_programs_table.php`, `2026_07_17_180840_create_program_versions_table.php`, `2026_07_17_180845_add_current_version_id_to_programs_table.php` (current schema)
+- Copilot Agent Repository Review (Critical finding); Stabilization Sprint report (2026-07-19); Epic 1 Final Stabilization report (2026-07-19)
+
+---
+
+## DEBT-011: Broken Program Export Action — RESOLVED
+
+### Resolution
+
+**Status: Resolved, Stabilization Sprint (2026-07-19).** The `Action::make('export')` header action in `app/Filament/Resources/Programs/Tables/ProgramsTable.php` was removed entirely (Option A — no export architecture existed anywhere in the repo to justify implementing a real page instead).
+
+### Description (original finding, kept for history)
+
+`ProgramsTable`'s `headerActions()` included an `Action::make('export')` whose `action()` closure called `redirect(route('filament.admin.resources.programs.export'))`. `ProgramResource::getPages()` registered only `index`/`create`/`edit`/`view` — no `export` page or route existed anywhere in the codebase (confirmed via repo-wide search). Any admin or content editor clicking "Export" on the Programs list page would trigger a `RouteNotFoundException`. No test exercised this action, which is why the test suite stayed green despite the defect.
+
+### Related Records
+
+- `app/Filament/Resources/Programs/Tables/ProgramsTable.php` (fixed)
+- Copilot Agent Repository Review (High finding), Stabilization Sprint report (2026-07-19)
+
+---
+
+## DEBT-012: Program Lifecycle/Versioning Documented But Unimplemented — RESOLVED (BY DECISION)
+
+### Resolution
+
+**Status: Resolved by explicit PM/Architect decision, Epic 1 Final Stabilization (2026-07-19).** Program lifecycle enforcement and immutable versioning are **officially deferred to a future Epic** — see ADR-003 (`docs/06-adr/003-defer-program-lifecycle-versioning.md`). This is not an implementation; it is a scope decision. `dd-program.md`'s Business Rules #5, #6, #8 and `domain-program.md`'s `## 5. Lifecycle`/`### Versioning` sections are now marked as deferred, not current behavior. The schema (`program_versions`, `current_version_id`, `published_at`, `archived_at`) is kept in place, unchanged, as the target for whichever future Epic implements this.
+
+### Description (original finding, kept for history)
+
+`docs/02-data/dictionaries/dd-program.md`'s Business Rules #5 ("Publish Creates Version"), #6 ("30-day grace period before hard delete"), and #8 ("SEO Required" for published programs), and `docs/01-architecture/domain-program.md`'s full `## 5. Lifecycle` and `### Versioning` sections, describe publish-time immutable `ProgramVersion` snapshots, archived-read-only enforcement, and a 30-day force-delete grace period as current, active business rules — not aspirational or future-phase language.
+
+No code implements any of it:
+- `grep -rn "ProgramVersion::create\|new ProgramVersion" app/` — zero matches. Nothing ever creates a `ProgramVersion` row.
+- `App\Models\Program`'s only lifecycle hooks (`booted()`) handle UUID/slug defaults and slug regeneration — no status-transition logic.
+- `App\Policies\ProgramPolicy::update()` checks only role, never `$program->status` — an editor can freely edit an Archived program.
+- No grace-period/retention mechanism exists anywhere; `forceDelete` is immediately permitted for Admins via Policy alone.
+
+### Why This Wasn't Fixed Immediately
+
+This sprint's explicit instruction was to verify whether the gap was an intentional deferral and, if so, mark it as such — not to implement it either way. It was **not** found to be an intentional deferral: unlike the `grades`/`media` forward-declarations on `Program` (which have an explicit "Architectural Note: Forward-Declared Relationships (Task 1.1, approved)" in `domain-program.md`, plus a recorded deviation in `sprint-01-review.md`), no equivalent note, ADR, or sprint-review scope carve-out exists anywhere for the lifecycle/versioning mechanism. `sprint-01-review.md` and `sprint-01-retro.md` don't mention it at all. The schema was fully built for it (`program_versions` table, `current_version_id`, `published_at`, `archived_at`, `version` columns all exist and are documented as in-use), which is inconsistent with a deliberate deferral — a deferred feature wouldn't normally get its target schema built and its business rules written in the present tense with zero caveat.
+
+This reads as a genuine Task 1.1 completeness gap that was missed during the original Sprint 1 review, not a documented scope decision — reported separately per instruction rather than implemented or silently marked as deferred.
+
+### Recommended Resolution
+
+PM/Architect to decide, explicitly, one of:
+- Implement the documented lifecycle (publish→snapshot, archived-read-only, 30-day grace period) before Epic 2, since Epic 1 documentation currently overstates what's actually built; or
+- Formally descope it — revise `dd-program.md`'s Business Rules and `domain-program.md`'s Lifecycle/Versioning sections to state plainly that this is planned for a future epic, not current behavior.
+
+Either way, the current state (docs claim it works; code doesn't) should not persist unaddressed into Epic 2.
+
+### Related Records
+
+- `docs/02-data/dictionaries/dd-program.md` (Business Rules #5, #6, #8)
+- `docs/01-architecture/domain-program.md` (`## 5. Lifecycle`, `### Versioning`)
+- `app/Models/Program.php`, `app/Policies/ProgramPolicy.php`, `app/Filament/Resources/Programs/Schemas/ProgramForm.php`
+- Copilot Agent Repository Review (High finding), Stabilization Sprint report (2026-07-19)
 
 ---
 

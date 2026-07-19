@@ -81,15 +81,20 @@ The dictionary above was reconciled against the actual Task 1.1 implementation. 
 
 ## Business Rules
 
+**Currently enforced (Epic 1 MVP):**
+
 1. **Unique Name**: Program `name` must be unique system-wide
 2. **Unique Code**: Program `code` must be unique (alphanumeric + underscore)
 3. **Unique Slug**: Program `slug` must be unique for public URLs
 4. **Grade Range**: `min_grade` ≤ `max_grade`, both 1-12
-4. **Status Flow**: Draft → Published → Archived (bidirectional Archived ↔ Published)
-5. **Publish Creates Version**: Publishing creates immutable `ProgramVersion` snapshot
-6. **Soft Delete Only**: 30-day grace period before hard delete
+4. **Status Flow**: Draft → Published → Archived (bidirectional Archived ↔ Published) — the `status` field and its three values are implemented; only the transition *side effects* below are deferred
 7. **Active + Published**: Only `is_active = true` AND `status = 2` visible to students
-8. **SEO Required**: Published programs must have `meta_title` and `meta_description`
+
+**Deferred to a future Epic (ADR-003 — `docs/06-adr/003-defer-program-lifecycle-versioning.md`, `DEBT-012`):** not enforced in Epic 1. The schema below (`program_versions`, `current_version_id`, `published_at`, `archived_at`) already exists to support these once implemented.
+
+5. **Publish Creates Version** *(deferred)*: Publishing should create an immutable `ProgramVersion` snapshot — not implemented; `status` can be changed to Published today without any snapshot being created
+6. **Soft Delete Only** *(deferred)*: a 30-day grace period before hard delete is intended — not implemented; `forceDelete` is available to Admins immediately
+8. **SEO Required** *(deferred)*: Published programs should require `meta_title`/`meta_description` — not enforced; both fields are currently optional regardless of `status`
 
 ## Enum Definitions
 

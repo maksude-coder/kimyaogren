@@ -20,13 +20,7 @@ return new class extends Migration
             // 2. UUID (public identifier)
             $table->uuid('uuid')->unique();
 
-            // 3. Foreign Keys (dependency order - parent tables first)
-            $table->foreignId('current_version_id')
-                ->nullable()
-                ->constrained('program_versions')
-                ->nullOnDelete();
-
-            // 4. Business Fields (required first, then optional)
+            // 3. Business Fields (required first, then optional)
             $table->string('code', 30)->unique();
             $table->string('name', 150)->unique();
             $table->string('slug', 180)->unique();

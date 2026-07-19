@@ -11,7 +11,7 @@ Defines quality standards, metrics, and processes for KimyaÖğren. Quality is n
 | Objective | Target | Measurement |
 |-----------|--------|-------------|
 | **Code Quality** | Zero critical/high static analysis issues | PHPStan Level 5+ |
-| **Test Coverage** | ≥80% on new code; ≥70% overall | Pest coverage report |
+| **Test Coverage** | ≥80% on new code; ≥70% overall | PHPUnit coverage report |
 | **Defect Rate** | <5% of stories have escaped defects | Sprint retrospective data |
 | **Performance** | API p95 < 200ms; UI FCP < 1.5s | Laravel Telescope / Lighthouse |
 | **Accessibility** | WCAG 2.1 AA compliant | axe-core + manual audit |
@@ -27,7 +27,7 @@ Defines quality standards, metrics, and processes for KimyaÖğren. Quality is n
 ```bash
 ./vendor/bin/pint --test          # Code style
 ./vendor/bin/phpstan analyse      # Static analysis
-./vendor/bin/pest --parallel      # Tests
+php artisan test                  # Tests (PHPUnit)
 ```
 
 ### 2. Pull Request (CI)
@@ -35,8 +35,8 @@ Defines quality standards, metrics, and processes for KimyaÖğren. Quality is n
 |------|------|-----------|
 | Code Style | Laravel Pint | 0 violations |
 | Static Analysis | PHPStan | Level 5, 0 errors |
-| Tests | Pest | 100% pass |
-| Coverage | Pest + Xdebug | ≥80% new code |
+| Tests | PHPUnit | 100% pass |
+| Coverage | PHPUnit + Xdebug | ≥80% new code |
 | Security Audit | Composer Audit | 0 critical |
 | Dependency Freshness | Dependabot | <30 days behind |
 
@@ -146,9 +146,9 @@ Defines quality standards, metrics, and processes for KimyaÖğren. Quality is n
 ### Testing Strategy
 | Layer | Scope | Tools | Coverage Target |
 |-------|-------|-------|-----------------|
-| **Feature** | HTTP endpoints, Filament resources, user flows | Pest + Laravel | 80% |
-| **Unit** | Actions, Services, Enums, Rules, Calculators | Pest | 90% |
-| **Contract** | API contracts, Data Dictionary compliance | Pest + custom | 100% |
+| **Feature** | HTTP endpoints, Filament resources, user flows | PHPUnit + Laravel | 80% |
+| **Unit** | Actions, Services, Enums, Rules, Calculators | PHPUnit | 90% |
+| **Contract** | API contracts, Data Dictionary compliance | PHPUnit + custom | 100% |
 | **Browser** | Critical user journeys (future) | Dusk | Happy paths |
 
 ### Static Analysis

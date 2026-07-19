@@ -24,7 +24,7 @@ A task is **Done** only when ALL criteria below are met. No exceptions.
 - [ ] **Regression tests** - Bug fixes have failing→passing test
 - [ ] **Unit tests** - Services, Actions, Enums, Rules tested
 - [ ] **Factories** - All new models have factories with states
-- [ ] **All tests pass** - `./vendor/bin/pest --parallel` green
+- [ ] **All tests pass** - `php artisan test` green
 - [ ] **No flaky tests** - Tests deterministic
 
 ---

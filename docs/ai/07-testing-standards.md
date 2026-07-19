@@ -2,6 +2,8 @@
 
 These standards define the testing approach for the KimyaÖğren project.
 
+> **Correction (Repository Audit / Stabilization Sprint, 2026-07-19):** Epic 1's actual test suite (`tests/Feature/*.php`, `tests/Unit/*.php`) is written entirely in **PHPUnit** class-based syntax (`class FooTest extends TestCase`, `public function test_...()`), not Pest. `pestphp/pest-plugin` appears only in `composer.json`'s `allow-plugins` (a Laravel-skeleton default), and no Pest package is actually installed. The Pest-specific syntax, `Pest.php` config, and `use function Pest\Laravel\...` examples below describe an approach that was never adopted — they predate the PHPUnit-based convention Epic 1 actually established. Treat the *principles* in this document (test structure, coverage targets, what to test) as current; treat all **Pest-syntax code samples and CLI commands** (`./vendor/bin/pest ...`) as historical/superseded — the real commands are `php artisan test` / `vendor/bin/phpunit`, and existing tests under `tests/` are the authoritative style reference.
+
 ---
 
 ## Testing Philosophy

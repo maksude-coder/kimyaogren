@@ -15,7 +15,7 @@ Mandatory checks before any release to staging or production.
 - [ ] Changelog updated for version
 
 ### Testing
-- [ ] Full test suite passes: `./vendor/bin/pest --parallel`
+- [ ] Full test suite passes: `php artisan test`
 - [ ] Code style: `./vendor/bin/pint --test`
 - [ ] Static analysis: `./vendor/bin/phpstan analyse` (if configured)
 - [ ] Coverage ≥ 80% overall

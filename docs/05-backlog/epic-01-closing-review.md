@@ -81,7 +81,7 @@ All five resources are **standalone** (List/Create/Edit/View + filtered dropdown
 
 | Suite | Tests | Notes |
 |-------|-------|-------|
-| `ProgramTest` | 19 | Create/update/delete/soft-delete, slug auto-gen, scopes, authorization, status filter regression (`DEBT-007`) |
+| `ProgramTest` | 20 | Create/update/delete/soft-delete, slug auto-gen, scopes, authorization, status filter regression (`DEBT-007`), `DEBT-009` factory-collision regression (added in Hotfix 1.5.1) |
 | `GradeTest` | 14 | + program-scoped uniqueness (both directions), range validation, factory range enforcement |
 | `UnitTest` | 14 | + grade-scoped uniqueness (both directions), cascade both directions |
 | `TopicTest` | 14 | + unit-scoped uniqueness (both directions), auto-slug-gen, `published()` scope |
@@ -89,11 +89,11 @@ All five resources are **standalone** (List/Create/Edit/View + filtered dropdown
 | `StatusEnumTest` (Unit) | 6 | `ProgramStatus`/`TopicStatus` `options()` regression (root-caused `DEBT-007`) |
 | `BloomLevelTest` (Unit) | 3 | Written proactively — no bug found, unlike its siblings |
 | Framework defaults | 2 | `ExampleTest` × 2 |
-| **Total** | **86** | |
+| **Total** | **87** | |
 
 **Coverage pattern established and repeated at every level:** create, update, delete, soft-delete, scoped-uniqueness (both a collision test *and* a cross-parent non-collision test — proving the scope boundary works in both directions, not just that duplicates are blocked), two real HTTP-level authorization tests (a blocked role and a real `$this->get()` call, not `Livewire::test()` alone), factory-level business-rule enforcement, and both directions of the cascade rule.
 
-**Known reliability issue (does not indicate a regression):** the full suite is intermittently flaky due to `DEBT-009` (below) — a pre-existing `ProgramFactory` defect, not a defect in any Academic-domain entity's own tests. Every Learning-Objective-domain test suite passes reliably in isolation; only the *cumulative*, whole-suite run is affected.
+**Reliability update:** the intermittent `DEBT-009` flakiness described in earlier drafts of this review has been resolved (Hotfix Sprint 1.5.1) — see `docs/04-sprints/sprint-05-1-hotfix.md` and `debt-log.md`. The suite is no longer flaky; the fix is covered by its own regression test (counted above).
 
 ---
 
@@ -105,16 +105,15 @@ All five resources are **standalone** (List/Create/Edit/View + filtered dropdown
 | `DEBT-002` | `program_translations` recommendation vs. JSON-column implementation | Open | Low | No |
 | `DEBT-005` | Topic→Question cascade rule disagreement (Assessment domain, in `relationships.md`) | Open | Medium | Only if Epic 2 is Assessment domain — becomes directly relevant |
 | `DEBT-006` | RelationManager (documented) vs. standalone-resource (shipped) Filament UX pattern | Open | Low | No — but should be decided once, not carried into a 6th resource in Epic 2 |
-| `DEBT-009` | `ProgramFactory`'s 15-name fixed pool causing intermittent test flakiness | Open | **High** | **Recommend fixing before Epic 2** — every new epic's tests will make this worse, and an unreliable suite undermines every future "all tests pass" verification |
 
-**Resolved during Epic 1** (kept for audit trail, not carried forward): `DEBT-003` (Grade scoping), `DEBT-004` (cascade strategy), `DEBT-007` (enum `options()` bug), `DEBT-008` (Learning Objective code scoping).
+**Resolved during Epic 1** (kept for audit trail, not carried forward): `DEBT-003` (Grade scoping), `DEBT-004` (cascade strategy), `DEBT-007` (enum `options()` bug), `DEBT-008` (Learning Objective code scoping), `DEBT-009` (`ProgramFactory` name-pool exhaustion, resolved in Hotfix Sprint 1.5.1).
 
 ---
 
 ## 5. Recommendations for Epic 2
 
 1. **Resolve `DEBT-001` and `DEBT-006` as part of Epic 2 kickoff, not during it.** Both are PM/Architect decisions sitting outside the AI Developer's decision rights; both are cheap to resolve now and get more expensive to unwind the longer they're deferred (more sprints reference the current backlog/roadmap gap; a 6th Filament resource shipped standalone makes a later RelationManager UX pass larger).
-2. **Fix `DEBT-009` before Epic 2's first sprint.** This is the one item that actively degrades development velocity (a flaky suite forces re-runs and erodes trust in CI) rather than sitting inert. Recommended fix already specified in `debt-log.md`.
+2. ~~Fix `DEBT-009` before Epic 2's first sprint.~~ **Done** — resolved in Hotfix Sprint 1.5.1, ahead of this recommendation being acted on.
 3. **Whatever Epic 2 is, re-apply the scoped-uniqueness default from the first Data Dictionary review, not after finding a bug.** Two of Epic 1's five Architecture Decision Briefs (`DEBT-003`, `DEBT-008`) were the *same* class of issue, found independently because it wasn't yet a checked-for pattern. It now should be a standing checklist item for any new entity's Data Dictionary review: "is this identifier's uniqueness scoped to its immediate parent, or does it assume a single global namespace?"
 4. **If Epic 2 is the Assessment domain (`Question`, `QuestionOption`, etc.):** `DEBT-005` becomes immediately relevant — resolve it as part of that epic's planning documentation review, the same way `DEBT-004` was resolved for this epic, rather than let it surface mid-implementation.
 5. **If Epic 2 is the Content domain (`TheoryArticle`, `Media`):** revisit `Program::media()`'s forward-declaration now that a real target exists — this is exactly the moment that forward-declaration was written for.
@@ -124,9 +123,9 @@ All five resources are **standalone** (List/Create/Edit/View + filtered dropdown
 
 ## Approval
 
-**Status: Pending PM/Architect approval.**
+**Status: Approved.**
 
-Once approved, Epic 1's five sprint commits (`8d3b3c8` through `af4b1a8`) remain as-is — this review does not itself trigger a new commit. Per instruction, **do not push until this review is approved.**
+Following approval, this review's own commit (`b021e59`), Hotfix Sprint 1.5.1 (`9cec370`), the Repository Audit cleanup commits (`1257809`, `874ea6c`), and the first GitHub push all landed. See `docs/00-project/changelog.md` for the full sprint-by-sprint history.
 
 ---
 

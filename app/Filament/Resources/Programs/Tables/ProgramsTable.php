@@ -178,13 +178,6 @@ class ProgramsTable
                     ->icon('heroicon-o-plus')
                     ->url(fn () => route('filament.admin.resources.programs.create')),
             ])
-            ->headerActions([
-                Action::make('export')
-                    ->label('Export')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('gray')
-                    ->action(fn () => redirect(route('filament.admin.resources.programs.export'))),
-            ])
             ->defaultSort('display_order', 'asc')
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)

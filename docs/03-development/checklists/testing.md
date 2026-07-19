@@ -220,14 +220,14 @@ test('question type colors for badges', function () {
 
 ```bash
 # Run with coverage
-./vendor/bin/pest --coverage --min=80
+php artisan test --coverage --min=80
 
 # Per-file minimum (enforced in CI)
 # New files: 90%
 # Modified files: 80%
 ```
 
-### Coverage Exclusions (configure in `pest.php`)
+### Coverage Exclusions (configure in `phpunit.xml`)
 
 ```php
 coverage()->exclude([
@@ -257,7 +257,7 @@ jobs:
           extensions: mbstring, pdo_mysql, xdebug
           coverage: xdebug
       - run: composer install --prefer-dist --no-progress
-      - run: ./vendor/bin/pest --parallel --coverage --min=80
+      - run: php artisan test --coverage --min=80
 ```
 
 ---
