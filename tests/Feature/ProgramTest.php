@@ -404,4 +404,22 @@ class ProgramTest extends TestCase
             ->assertCanSeeTableRecords(Program::where('status', ProgramStatus::Published)->get())
             ->assertCanNotSeeTableRecords(Program::where('status', ProgramStatus::Draft)->get());
     }
+
+    /**
+     * Regression test for DEBT-009: `ProgramFactory`'s `name` previously
+     * drew from a fixed 15-item list guarded by `unique()`, which became
+     * flaky once a single test (or the cumulative suite) needed more than
+     * 15 distinct Programs. This deliberately exceeds that old ceiling in
+     * a single test to prove the fix (a `unique()` numeric differentiator
+     * over a 9,000-value range) holds under the exact load that exposed
+     * the original bug — not just that it works for a handful of Programs.
+     */
+    public function test_program_factory_can_create_more_than_fifteen_programs_without_name_collision(): void
+    {
+        $programs = Program::factory()->count(50)->create();
+
+        $this->assertCount(50, $programs);
+        $this->assertCount(50, $programs->pluck('name')->unique());
+        $this->assertCount(50, $programs->pluck('code')->unique());
+    }
 }

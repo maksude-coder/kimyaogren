@@ -18,7 +18,7 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-006 | `epic-01-academic-domain.md`'s Technical Requirements specify a nested "RelationManager" Filament UX (e.g. "Unit: Topics RelationManager"), but Grade/Unit/Topic all shipped as standalone resources instead | Open | Low | PM/Architect | Sprint 1.3 planning | Unscheduled — UX pass, not a data-model conflict |
 | DEBT-007 | `ProgramStatus::options()` (and, until fixed in Sprint 1.4, `TopicStatus::options()`) used `array_column(self::cases(), 'label', 'value')` — `label` is a method, not a property, so `array_column` silently returns an **empty array**. Confirmed broken in shipped, committed code: `ProgramsTable`'s status `SelectFilter` has zero selectable options right now. | **Resolved** | High | Architect | Sprint 1.4 (found while implementing `TopicStatus`) | Resolved in Hotfix Sprint 1.4.1 |
 | DEBT-008 | `dd-learning-objectives.md` documented `code` as **globally** unique, but the `KIM.{grade}.{unit}.{topic}.{sequence}` format encodes only numbers, not which Program they belong to — the same class of issue as `DEBT-003`, one level deeper | **Resolved** | High | Architect | Sprint 1.5 planning | Resolved before Sprint 1.5 plan finalized |
-| DEBT-009 | `ProgramFactory`'s `name` field uses `$this->faker->unique()->randomElement([...15 fixed names...])`. Confirmed flaky (reproduced twice in ~6 runs): as the cumulative test suite grows (Grade/Unit/Topic/LearningObjective tests all indirectly create Programs via nested factory defaults), this small fixed pool intermittently produces `UNIQUE constraint failed: programs.name`. | Open | High | Architect | Sprint 1.5 (found running the full suite after Learning Objective tests were added) | Before the pool is exhausted further by future sprints |
+| DEBT-009 | `ProgramFactory`'s `name` field uses `$this->faker->unique()->randomElement([...15 fixed names...])`. Confirmed flaky (reproduced twice in ~6 runs): as the cumulative test suite grows (Grade/Unit/Topic/LearningObjective tests all indirectly create Programs via nested factory defaults), this small fixed pool intermittently produces `UNIQUE constraint failed: programs.name`. | **Resolved** | High | Architect | Sprint 1.5 (found running the full suite after Learning Objective tests were added) | Resolved in Hotfix Sprint 1.5.1 |
 
 ---
 
@@ -280,9 +280,22 @@ This was discovered while preparing the Sprint 1.5 plan (reviewing whether Learn
 
 ---
 
-## DEBT-009: `ProgramFactory` Name Pool Exhaustion (Flaky Test Suite)
+## DEBT-009: `ProgramFactory` Name Pool Exhaustion (Flaky Test Suite) — RESOLVED
 
-### Description
+### Resolution
+
+**Status: Resolved, via Hotfix Sprint 1.5.1.** `ProgramFactory::definition()`'s `name` generation was changed from `$this->faker->unique()->randomElement([...15 fixed names...])` to:
+```php
+$name = $this->faker->randomElement([...same 15 names, no unique()...])
+    .' '.$this->faker->unique()->numberBetween(1000, 9999);
+```
+`unique()` now guards a 9,000-value numeric range instead of a 15-item list — 15 × 9,000 = 135,000 possible names, a ~9,000x increase in the collision-free space. The 4-digit range (`1000-9999`, always exactly 4 digits) was deliberately chosen, not arbitrary: the longest base name ("Cambridge IGCSE Chemistry") produces a 25-character `code`, and `code` is `VARCHAR(30)` — 25 + `"_"` + 4 digits = 30 exactly. A 5th digit would silently risk truncation/overflow for that specific name. Verified via `tinker` across 200 factory draws: max observed `code` length was exactly 30, never more.
+
+**Regression coverage added:** `ProgramTest::test_program_factory_can_create_more_than_fifteen_programs_without_name_collision` creates 50 Programs in a single test (deliberately exceeding the old 15-item ceiling) and asserts all 50 names and codes are distinct — proving the fix holds under the exact load that exposed the original bug, not just for a handful of Programs.
+
+**Verification:** Full suite run 10 times across two sessions (5 before adding the regression test, 5 after) — 10/10 clean passes, no recurrence of the `UNIQUE constraint failed: programs.name` error.
+
+### Description (original finding, kept for history)
 
 `database/factories/ProgramFactory.php`'s `definition()` generates `name` via:
 ```php
@@ -311,8 +324,10 @@ Other full-suite runs in the same session passed cleanly (86/86) — this is int
 
 ### Related Records
 
-- `database/factories/ProgramFactory.php` (the affected factory, unchanged)
-- `docs/04-sprints/sprint-05-review.md` (where this was found, once produced)
+- `database/factories/ProgramFactory.php` (fixed, Hotfix Sprint 1.5.1)
+- `docs/04-sprints/sprint-05-review.md` (where this was found)
+- `docs/04-sprints/sprint-05-1-hotfix.md` (Hotfix Sprint 1.5.1 record — fix, regression test, this resolution)
+- `tests/Feature/ProgramTest.php::test_program_factory_can_create_more_than_fifteen_programs_without_name_collision` (regression coverage)
 
 ---
 

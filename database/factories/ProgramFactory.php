@@ -23,7 +23,19 @@ class ProgramFactory extends Factory
      */
     public function definition(): array
     {
-        $name = $this->faker->unique()->randomElement([
+        // DEBT-009: `unique()` was previously applied to `randomElement()`
+        // over this same fixed 15-item list, which became flaky once the
+        // cumulative test suite (Grade/Unit/Topic/LearningObjective all
+        // indirectly create Programs via nested factory defaults) needed
+        // more than 15 distinct Programs per process. `unique()` now
+        // applies instead to a 9,000-value numeric differentiator
+        // (1000-9999), giving 15 x 9,000 = 135,000 possible names — the
+        // base list itself no longer needs to be unique. The 4-digit range
+        // is deliberate: the longest base name ("Cambridge IGCSE
+        // Chemistry") produces a 25-character `code`, and `code` is
+        // VARCHAR(30) — 25 + "_" + 4 digits = 30 exactly, so a 5th digit
+        // would silently risk truncation/overflow for that name.
+        $name = $this->faker->randomElement([
             'High School Chemistry',
             'High School Physics',
             'Middle School Science',
@@ -39,7 +51,7 @@ class ProgramFactory extends Factory
             'Middle School Chemistry',
             'High School Biology',
             'IB Biology SL',
-        ]);
+        ]).' '.$this->faker->unique()->numberBetween(1000, 9999);
 
         $code = Str::upper(Str::slug($name, '_'));
         $slug = Str::slug($name);
