@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             GradeSeeder::class,
             UnitSeeder::class,
             TopicSeeder::class,
+            LearningObjectiveSeeder::class,
         ]);
 
         User::factory()->create([

@@ -17,6 +17,8 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-005 | `docs/02-data/relationships.md` (Academic Domain, Topic→`questions`) says `CASCADE DELETE`; `docs/02-data/dictionaries/dd-questions.md` and `relationships.md`'s own Assessment Domain section say `RESTRICT` for the same `topic_id` FK | Open | Medium | Architect | Sprint 1.3 planning (found during `DEBT-004` cross-check) | Before Assessment domain (Question) implementation |
 | DEBT-006 | `epic-01-academic-domain.md`'s Technical Requirements specify a nested "RelationManager" Filament UX (e.g. "Unit: Topics RelationManager"), but Grade/Unit/Topic all shipped as standalone resources instead | Open | Low | PM/Architect | Sprint 1.3 planning | Unscheduled — UX pass, not a data-model conflict |
 | DEBT-007 | `ProgramStatus::options()` (and, until fixed in Sprint 1.4, `TopicStatus::options()`) used `array_column(self::cases(), 'label', 'value')` — `label` is a method, not a property, so `array_column` silently returns an **empty array**. Confirmed broken in shipped, committed code: `ProgramsTable`'s status `SelectFilter` has zero selectable options right now. | **Resolved** | High | Architect | Sprint 1.4 (found while implementing `TopicStatus`) | Resolved in Hotfix Sprint 1.4.1 |
+| DEBT-008 | `dd-learning-objectives.md` documented `code` as **globally** unique, but the `KIM.{grade}.{unit}.{topic}.{sequence}` format encodes only numbers, not which Program they belong to — the same class of issue as `DEBT-003`, one level deeper | **Resolved** | High | Architect | Sprint 1.5 planning | Resolved before Sprint 1.5 plan finalized |
+| DEBT-009 | `ProgramFactory`'s `name` field uses `$this->faker->unique()->randomElement([...15 fixed names...])`. Confirmed flaky (reproduced twice in ~6 runs): as the cumulative test suite grows (Grade/Unit/Topic/LearningObjective tests all indirectly create Programs via nested factory defaults), this small fixed pool intermittently produces `UNIQUE constraint failed: programs.name`. | Open | High | Architect | Sprint 1.5 (found running the full suite after Learning Objective tests were added) | Before the pool is exhausted further by future sprints |
 
 ---
 
@@ -245,6 +247,72 @@ Sprint 1.4's explicit constraint is "do not modify Program/Grade/Unit code excep
 - `docs/04-sprints/sprint-04-review.md` (where this was found and the fix verified for Topic)
 - `docs/04-sprints/sprint-04-1-hotfix.md` (Hotfix Sprint 1.4.1 record — fix for `ProgramStatus`, regression tests, this resolution)
 - `tests/Unit/StatusEnumTest.php`, `tests/Feature/ProgramTest.php::test_admin_can_filter_program_list_by_status` (regression coverage)
+
+---
+
+## DEBT-008: Learning Objective `code` Global Uniqueness vs. Program-Rooted Hierarchy — RESOLVED
+
+### Resolution
+
+**Status: Resolved.** An Architecture Decision Brief was prepared during Sprint 1.5 planning, comparing three options: Option A (denormalize `program_id` onto `learning_objectives`, composite `UNIQUE(program_id, code)`), Option B (keep `code` globally unique as an unenforced convention), and Option C (scope uniqueness to the immediate owning parent, `UNIQUE(topic_id, code)`).
+
+**Decision: Option C — approved.** This continues the exact pattern already established for `Grade` (`program_id`), `Unit` (`grade_id`), and `Topic` (`unit_id`): uniqueness scoped to the immediate owning parent, not a denormalized reference to the root `Program`. No new column was needed — `topic_id` already exists on `learning_objectives`.
+
+**Architectural clarification (recorded per the decision):** within the current architecture, `code` is a **curriculum-scoped identifier** (unique within its owning Topic), not a nationally-standardized identifier unique across all curricula. If a future requirement introduces identifiers that must be unique across multiple curricula (Programs), the Learning Objective identity model should be revisited as its own Architecture Decision at that time.
+
+`docs/02-data/dictionaries/dd-learning-objectives.md` was updated to reflect Option C: the unique index changed from `code` alone to `(topic_id, code)`, Business Rule #2 reworded, a Revision Notes section added (v1.1). `docs/05-backlog/epic-01-academic-domain.md` and `docs/01-architecture/modules.md` updated to match. No migration exists yet — the actual `learning_objectives` table will be created in Sprint 1.5's implementation task following the now-corrected dictionary.
+
+### Description (original finding, kept for history)
+
+`dd-learning-objectives.md` (Created: 2024-01-15 — same era as the original, pre-Program `dd-grades.md`) documented `code` as globally unique, enforced by a single-column unique index. The `KIM.{grade}.{unit}.{topic}.{sequence}` format (e.g. `KIM.9.1.1.1`) encodes only bare numbers relative to Grade/Unit/Topic — it does not encode which Program those numbers belong to. Since `DEBT-003` established that grade/unit/topic numbers are **not** unique across Programs by design, two different Programs with overlapping curricula (e.g. the already-seeded `HS_CHEM_TR` and `OLD_CHEM_TR`, both chemistry curricula covering Grade 9) could independently produce the identical code `KIM.9.1.1.1`, which a global unique constraint would incorrectly reject.
+
+### Why This Wasn't Fixed Immediately
+
+This was discovered while preparing the Sprint 1.5 plan (reviewing whether Learning Objective's Data Dictionary was ready for implementation), not during Sprint 1.4 (Learning Objective was explicitly out of scope for Task 1.4). Deciding the correct scope for `code` uniqueness was an architecture decision, not something to resolve unilaterally while writing a sprint plan — escalated as an Architecture Decision Brief instead.
+
+### Related Records
+
+- `docs/04-sprints/sprint-05-plan.md` (Sprint 1.5 plan, once produced)
+- `docs/02-data/dictionaries/dd-learning-objectives.md` (updated to Option C, v1.1)
+- `docs/05-backlog/epic-01-academic-domain.md` (Learning Objective summary, updated to match)
+- `docs/01-architecture/modules.md` (Key Business Rules, updated to match)
+- `docs/01-architecture/ownership-model.md` (already consistent — no change needed; this decision extends the same pattern already documented there)
+
+---
+
+## DEBT-009: `ProgramFactory` Name Pool Exhaustion (Flaky Test Suite)
+
+### Description
+
+`database/factories/ProgramFactory.php`'s `definition()` generates `name` via:
+```php
+$name = $this->faker->unique()->randomElement([
+    'High School Chemistry', 'High School Physics', /* ...15 total... */
+]);
+```
+This was reliable while the test suite was small. As of Sprint 1.5, the cumulative number of `Program::factory()` invocations per test process has grown substantially — every `Grade::factory()`, `Unit::factory()`, `Topic::factory()`, and `LearningObjective::factory()` call that doesn't explicitly override `program_id`/`grade_id`/etc. creates a fresh `Program` (and its whole parent chain) by default. With only 15 fixed candidate names, this is now empirically flaky:
+
+**Reproduced twice in ~6 full-suite runs** (`vendor/bin/phpunit`, no filter):
+```
+Illuminate\Database\UniqueConstraintViolationException: SQLSTATE[23000]: Integrity constraint violation:
+19 UNIQUE constraint failed: programs.name ... (insert into "programs" (..., "name", ...) values (..., High School Chemistry, ...))
+```
+Other full-suite runs in the same session passed cleanly (86/86) — this is intermittent, not deterministic, which is precisely what makes it dangerous for CI: a red build doesn't reliably mean a real regression, undermining trust in the suite.
+
+### Why This Wasn't Fixed Immediately
+
+`ProgramFactory.php` is Task 1.1 code. Sprint 1.5's explicit constraint is "do not modify Program/Grade/Unit/Topic code except where strictly required by the new Learning Objective relationship" — fixing this is not required for Learning Objective to function, and the exact underlying mechanism (why a `unique()`-guarded generator produces a real duplicate rather than throwing an overflow exception once exhausted — most likely related to per-test Faker instance/state lifecycle under `RefreshDatabase`) was not fully root-caused before flagging, consistent with escalating rather than guessing at a fix for out-of-scope code.
+
+### Recommended Resolution
+
+- Stop relying on `unique()` over a small fixed list for `Program.name`. Options: (a) append a Faker-generated differentiator (e.g. `"{$name} {$this->faker->unique()->numberBetween(1000, 9999)}"`), (b) generate names compositionally (e.g. combine a curriculum type with a language/level faker word) so the candidate space is effectively unbounded, or (c) drop `unique()` entirely and rely on the model's own DB-level unique constraint plus a retry-on-collision strategy in tests that need guaranteed-distinct Programs.
+- Whichever fix is chosen, add a test that creates >15 Programs in a single test (deliberately exceeding the old pool size) to prove the fix holds under the exact load that exposed this.
+- Recommend prioritizing this soon — it's a test-infrastructure reliability issue, and every subsequent sprint that adds more tests only increases the cumulative `Program::factory()` call count per process, making the flake rate worse, not better, over time.
+
+### Related Records
+
+- `database/factories/ProgramFactory.php` (the affected factory, unchanged)
+- `docs/04-sprints/sprint-05-review.md` (where this was found, once produced)
 
 ---
 

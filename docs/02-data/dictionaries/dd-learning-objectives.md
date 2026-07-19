@@ -6,8 +6,22 @@
 - **Purpose**: Store MEB-aligned learning objectives (kazanımlar) for each topic with Bloom's taxonomy and difficulty
 - **Owner**: Academic Domain Lead
 - **Created**: 2024-01-15
+- **Revised**: 2026-07-19 (topic-scoped `code` uniqueness adopted — see Revision Notes)
 - **Approved By**: Architect, PM
-- **Version**: 1.0
+- **Version**: 1.1
+
+## Revision Notes (Architecture Decision Brief resolution)
+
+This dictionary originally modeled `code` as **globally** unique across the entire `learning_objectives` table. An Architecture Decision Brief (Sprint 1.5 planning) identified this as the same class of issue already resolved for `Grade` (`DEBT-003`): the `KIM.{grade}.{unit}.{topic}.{sequence}` format encodes only numbers relative to Grade/Unit/Topic, not which Program they belong to — and grade/unit/topic numbers are **not** unique across Programs by design (e.g. `HS_CHEM_TR` and `OLD_CHEM_TR` can both have a Grade 9 → Unit 9.1 → first objective, independently producing `KIM.9.1.1.1`). A global unique constraint would incorrectly reject this legitimate case.
+
+**Decision: Option C — scope `code` uniqueness to the owning Topic (`UNIQUE(topic_id, code)`) — approved.** This continues the exact pattern already established for `Grade` (`program_id`), `Unit` (`grade_id`), and `Topic` (`unit_id`): uniqueness scoped to the immediate owning parent, not a denormalized reference to the root `Program`. No new column is needed — `topic_id` already exists on `learning_objectives`.
+
+**Architectural clarification:** within the current architecture, `code` is a **curriculum-scoped identifier** (unique within its owning Topic), not a nationally-standardized identifier unique across all curricula. If a future requirement introduces identifiers that must be unique across multiple curricula (Programs), the Learning Objective identity model should be revisited as its own Architecture Decision at that time — this is a deliberate scope boundary, not an oversight.
+
+Changes made to this dictionary as a result:
+- Changed the uniqueness rule from `UNIQUE(code)` to `UNIQUE(topic_id, code)`.
+- Reworded Business Rule #2 accordingly.
+- The human-readable MEB code format (Business Rule #1) is unaffected — only what the database *enforces* changed, not what codes look like or how they're generated.
 
 ## Columns
 
@@ -15,7 +29,7 @@
 |--------|------|-------------|-------------|---------|
 | id | BIGINT UNSIGNED | PK, AI | Primary key | 1 |
 | topic_id | BIGINT UNSIGNED | FK → topics.id, CASCADE | Parent topic | 1 |
-| code | VARCHAR(30) | NOT NULL, UNIQUE | MEB objective code | "KIM.9.1.1" |
+| code | VARCHAR(30) | NOT NULL, UNIQUE within topic | MEB objective code | "KIM.9.1.1" |
 | description | TEXT | NOT NULL | Objective text (Turkish) | "Atom modellerini tarihsel süreçte açıklar" |
 | bloom_level | TINYINT UNSIGNED | NOT NULL, DEFAULT 1 | Bloom's taxonomy 1-6 | 2 |
 | difficulty | TINYINT UNSIGNED | NOT NULL, DEFAULT 3 | Difficulty 1-5 | 3 |
@@ -33,7 +47,7 @@
 |------|---------|------|---------|
 | PRIMARY | id | PRIMARY | PK |
 | fk_objectives_topic_id | topic_id | FOREIGN KEY | FK to topics |
-| uk_objectives_code | code | UNIQUE | Global unique MEB code |
+| uk_objectives_topic_code | (topic_id, code) | UNIQUE | MEB code unique **within the owning Topic** (not globally) |
 | idx_objectives_topic_order | (topic_id, `order`) | BTREE | Ordered listing per topic |
 | idx_objectives_bloom | bloom_level | BTREE | Bloom level filter |
 | idx_objectives_difficulty | difficulty | BTREE | Difficulty filter |
@@ -52,7 +66,7 @@
 
 1. **MEB Code Format**: `KIM.{grade}.{unit}.{topic}.{sequence}` (e.g., `KIM.9.1.1.1`)
    - Validated via regex: `/^KIM\.\d{1,2}\.\d{1,2}\.\d{1,2}\.\d{1,2}$/`
-2. Code globally unique (enforced by unique index)
+2. Code unique **within its owning Topic** (enforced by composite unique index on `(topic_id, code)`), not globally — the same code legitimately exists under different Topics/Programs
 3. Bloom's Taxonomy Levels (1-6):
    - 1: Remember (Hatırlama)
    - 2: Understand (Anlama)
@@ -112,7 +126,7 @@ INSERT INTO learning_objectives (topic_id, code, description, bloom_level, diffi
 - [ ] Strings have explicit length
 - [ ] Unsigned integers for bloom_level, difficulty, order
 - [ ] Indexes on all FK columns
-- [ ] Unique constraint on `code`
+- [ ] Unique constraint is composite `(topic_id, code)`, **not** `code` alone
 - [ ] Composite index for topic + order
 - [ ] Soft deletes included
 - [ ] Audit fields included
@@ -121,4 +135,4 @@ INSERT INTO learning_objectives (topic_id, code, description, bloom_level, diffi
 
 ---
 
-*Generated from Data Dictionary v1.0. Update this file when schema changes.*
+*Generated from Data Dictionary v1.0; revised to v1.1 following Architecture Decision Brief approval (Option C — topic-scoped `code` uniqueness). Update this file when schema changes.*

@@ -58,6 +58,12 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - `docs/04-sprints/sprint-04-review.md`: Sprint 1.4 Task 1 review record
 - `docs/04-sprints/sprint-04-1-hotfix.md`: Hotfix Sprint 1.4.1 record — `ProgramStatus::options()` fix, isolated from Sprint 1.4's commit per PM decision (reclassified `DEBT-007` from technical debt to a verified production bug)
 - `tests/Unit/StatusEnumTest.php`: regression coverage for `ProgramStatus::options()` / `TopicStatus::options()` (6 tests)
+- `docs/05-backlog/debt-log.md`: `DEBT-008` (`dd-learning-objectives.md`'s globally-unique `code` vs. the Program-rooted hierarchy — same class of issue as `DEBT-003`, one level deeper — Resolved during Sprint 1.5 planning)
+- `docs/04-sprints/sprint-05-plan.md`: Sprint 1.5 plan (Learning Objective domain) — approved
+- Sprint 1.5, Task 1: Learning Objective domain (`App\Enums\BloomLevel`, migration, model, factory, seeder, Filament resource, policy, feature tests) — Topic-scoped: `topic_id` FK `cascadeOnDelete()`, `unique(topic_id, code)` per `DEBT-008`, MEB code format regex validation, `bloom_level` cast to `BloomLevel`, `difficulty` (1–5). Deliberately has no slug, status, or SEO fields (not an individually URL-addressable page — confirmed in Sprint 1.5 planning) and does **not** forward-declare `questions()` (Assessment domain, not yet implemented). This completes the currently-documented academic hierarchy (`Program → Grade → Unit → Topic → Learning Objective`).
+- `tests/Unit/BloomLevelTest.php`: regression coverage for `BloomLevel::options()`, written proactively from the start (per `DEBT-007`'s lesson) rather than discovered broken
+- `docs/05-backlog/debt-log.md`: `DEBT-009` (`ProgramFactory`'s 15-name fixed pool causing intermittent `UNIQUE constraint failed: programs.name` as the cumulative test suite grows — found running the full suite after Learning Objective tests were added, reproduced twice in ~6 runs)
+- `docs/04-sprints/sprint-05-review.md`: Sprint 1.5 Task 1 review record
 
 ### Changed
 - `docs/02-data/dictionaries/dd-program.md` reconciled with the actual Task 1.1 implementation (see "Review Notes" section in that file for details)
@@ -66,6 +72,8 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - `docs/05-backlog/epic-01-academic-domain.md` Grade Data Dictionary Summary updated to match the Program-scoped design
 - `docs/02-data/relationships.md`: added the missing `Program` section (Academic Domain previously started at `Grade`); changed `RESTRICT` → `CASCADE DELETE` for `Unit→Grade`, `Topic→Unit`, `LearningObjective→Topic` per the approved Architecture Decision Brief (`DEBT-004`, Resolved: Option A — Cascade Delete for the `Program→Grade→Unit→Topic→Learning Objective` ownership tree); added an explicit rule that soft deletes never cascade automatically; updated the mermaid diagram and eager-loading example to start from `Program`
 - `docs/05-backlog/epic-01-academic-domain.md` Topic Data Dictionary Summary: added the missing `difficulty` row to match `dd-topics.md`
+- `docs/02-data/dictionaries/dd-learning-objectives.md` reconciled from a globally-unique `code` design to Topic-scoped (v1.1 — see Revision Notes in that file), per the approved Architecture Decision Brief (`DEBT-008`, Resolved: Option C — `UNIQUE(topic_id, code)`, continuing the same immediate-parent-scoping pattern as `Grade`/`Unit`/`Topic`); Business Rule #2 reworded accordingly
+- `docs/05-backlog/epic-01-academic-domain.md` Learning Objective summary and `docs/01-architecture/modules.md` updated to state `code` is unique within Topic, matching `dd-learning-objectives.md`
 
 ### Fixed
 - Program's View page (`ViewProgram.php`) threw a fatal error on every visit due to an invalid static call on a trait; now renders correctly with an Edit header action

@@ -46,7 +46,7 @@ Topic (1) ──────< (N) LearningObjective
 
 ### Key Business Rules
 - Topic slug unique within Unit
-- LearningObjective code follows MEB format (e.g., `KIM.9.1.1`)
+- LearningObjective code follows MEB format (e.g., `KIM.9.1.1`), unique within Topic
 - Bloom's taxonomy levels: Remember, Understand, Apply, Analyze, Evaluate, Create
 - Status: Draft → Published → Archived
 
@@ -87,7 +87,7 @@ Topic (1) ──────< (N) LearningObjective
 
 ### Key Business Rules
 - Topic slug unique within Unit
-- LearningObjective code follows MEB format (e.g., `KIM.9.1.1`)
+- LearningObjective code follows MEB format (e.g., `KIM.9.1.1`), unique within Topic
 - Bloom's taxonomy levels: Remember, Understand, Apply, Analyze, Evaluate, Create
 - Status: Draft → Published → Archived
 

@@ -89,11 +89,14 @@
 | timestamps + soft deletes | | |
 
 ### Learning Objective
+
+> **Code is Topic-scoped, not globally unique** (Architecture Decision Brief, approved — see `docs/05-backlog/debt-log.md` `DEBT-008`, Resolved). Full detail: `docs/02-data/dictionaries/dd-learning-objectives.md`.
+
 | Column | Type | Constraints |
 |--------|------|-------------|
 | id | BIGINT UNSIGNED | PK, AI |
 | topic_id | BIGINT UNSIGNED | FK → topics.id, CASCADE |
-| code | VARCHAR(30) | NOT NULL (MEB format: KIM.9.1.1) |
+| code | VARCHAR(30) | NOT NULL, UNIQUE(topic_id) (MEB format: KIM.9.1.1) |
 | description | TEXT | NOT NULL |
 | bloom_level | TINYINT UNSIGNED | DEFAULT 1 (1=Remember...6=Create) |
 | difficulty | TINYINT UNSIGNED | DEFAULT 3 (1-5) |
