@@ -7,9 +7,12 @@ namespace App\Policies;
 use App\Enums\UserRole;
 use App\Models\Grade;
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesCurriculumManagement;
 
 class GradePolicy
 {
+    use AuthorizesCurriculumManagement;
+
     public function viewAny(User $user): bool
     {
         return $this->isAdminOrEditor($user);
@@ -43,10 +46,5 @@ class GradePolicy
     public function forceDelete(User $user, Grade $grade): bool
     {
         return $user->role === UserRole::Admin;
-    }
-
-    private function isAdminOrEditor(User $user): bool
-    {
-        return in_array($user->role, [UserRole::Admin, UserRole::ContentEditor], true);
     }
 }

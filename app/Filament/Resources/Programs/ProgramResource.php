@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Programs;
 
+use App\Enums\ProgramStatus;
 use App\Filament\Resources\Programs\Pages\CreateProgram;
 use App\Filament\Resources\Programs\Pages\EditProgram;
 use App\Filament\Resources\Programs\Pages\ListPrograms;
@@ -41,8 +42,8 @@ class ProgramResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::query()
-            ->where('status', 2) // Published
+        return (string) static::getModel()::query()
+            ->where('status', ProgramStatus::Published)
             ->where('is_active', true)
             ->count();
     }
@@ -50,7 +51,7 @@ class ProgramResource extends Resource
     public static function getNavigationBadgeColor(): ?string
     {
         return static::getModel()::query()
-            ->where('status', 1) // Draft
+            ->where('status', ProgramStatus::Draft)
             ->where('is_active', true)
             ->exists() ? 'warning' : 'success';
     }
