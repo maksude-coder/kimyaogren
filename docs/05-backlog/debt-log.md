@@ -22,6 +22,7 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-010 | `program_versions` migration declared a `constrained()` FK to `programs` before `programs` existed. SQLite tolerated it; a fresh MySQL install would not. | **Resolved** | Critical | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved in Epic 1 Final Stabilization (2026-07-19) — migrations split into correct creation order |
 | DEBT-011 | `ProgramsTable`'s header `Action::make('export')` redirected to `route('filament.admin.resources.programs.export')`, a route that was never registered — clicking it in the admin UI threw `RouteNotFoundException`. No export architecture (package, controller, page) exists anywhere in the repo. | **Resolved** | High | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved same sprint — action removed |
 | DEBT-012 | `dd-program.md`'s Business Rules (#5, #6, #8) and `domain-program.md`'s full Lifecycle/Versioning section described publish-time immutable snapshots, archived-read-only enforcement, and a 30-day force-delete grace period as current requirements — but no code implemented any of it. | **Resolved (by decision)** | High | PM/Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Officially deferred to a future Epic — ADR-003, resolved 2026-07-19 |
+| DEBT-013 | `Program::users(): BelongsToMany` (and its documentation in `relationships.md`) references a `user_programs` pivot table that has no migration anywhere in the codebase — unlike `Program::grades()`/`Program::media()`, it is **not** covered by the "Architectural Note: Forward-Declared Relationships (Task 1.1, approved)" in `domain-program.md`. Calling `$program->users` throws `Base table or view not found`. | Open | Medium | Architect | Code review (2026-09-25) | Before any feature enrolls users in Programs |
 
 ---
 
@@ -414,6 +415,40 @@ Either way, the current state (docs claim it works; code doesn't) should not per
 - `docs/01-architecture/domain-program.md` (`## 5. Lifecycle`, `### Versioning`)
 - `app/Models/Program.php`, `app/Policies/ProgramPolicy.php`, `app/Filament/Resources/Programs/Schemas/ProgramForm.php`
 - Copilot Agent Repository Review (High finding), Stabilization Sprint report (2026-07-19)
+
+---
+
+## DEBT-013: `Program::users()` References a Nonexistent `user_programs` Pivot Table
+
+### Description
+
+`app/Models/Program.php` declares:
+```php
+public function users(): BelongsToMany
+{
+    return $this->belongsToMany(User::class, 'user_programs')
+        ->withPivot('enrolled_at', 'status', 'progress_percentage')
+        ->withTimestamps();
+}
+```
+`docs/02-data/relationships.md` documents the same relationship (Academic Domain § Program), listing it with `DETACH` cascade like any other shipped relationship. However, no migration for a `user_programs` table exists anywhere in `database/migrations/`, and no `UserProgram`-style pivot model exists either. Calling `$program->users` (or `$program->users()->attach(...)`) on any environment fails with `Illuminate\Database\QueryException: SQLSTATE[HY000]: ... Base table or view not found: user_programs`.
+
+This differs from the project's own precedent for `Program::grades()`/`Program::media()`: those are explicitly covered by the "Architectural Note: Forward-Declared Relationships (Task 1.1, approved)" in `docs/01-architecture/domain-program.md`, which documents them as a deliberate, reviewed deviation. `users()` has no equivalent note anywhere (not in `domain-program.md`, not in a sprint review, not in this debt log until now) — it reads as an unflagged gap, not an approved forward declaration.
+
+### Why This Wasn't Fixed Immediately
+
+Deciding the pivot table's shape (columns beyond `enrolled_at`/`status`/`progress_percentage`, an `EnrollmentStatus` enum, indexes/uniqueness on `(user_id, program_id)`, cascade behavior) is a Data Dictionary + migration decision under this project's Database-First rule ("No database migration without approved Data Dictionary"), not something to add unilaterally during a code review task.
+
+### Recommended Resolution
+
+- Architect to decide: either (a) retroactively approve `users()` as a forward-declared relationship (adding it to the existing Architectural Note, same pattern as `media`) and schedule the `user_programs` migration + Data Dictionary for the sprint that introduces student enrollment, or (b) remove the relationship and its `relationships.md` entry until enrollment is actually scheduled, to avoid another unflagged runtime trap like the one `media` avoided by being documented.
+- Either way, add a regression test once resolved (either "relationship is documented as forward-declared and intentionally untested" or a real Feature test against the new table) so this doesn't silently regress again.
+
+### Related Records
+
+- `app/Models/Program.php` (`users()` relationship)
+- `docs/02-data/relationships.md` (Academic Domain § Program, `users` row)
+- `docs/01-architecture/domain-program.md` (Architectural Note: Forward-Declared Relationships — currently only covers `grades`/`media`)
 
 ---
 

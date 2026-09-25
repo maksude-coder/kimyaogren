@@ -9,6 +9,7 @@ use App\Filament\Resources\Programs\Pages\CreateProgram;
 use App\Filament\Resources\Programs\Pages\EditProgram;
 use App\Filament\Resources\Programs\Pages\ListPrograms;
 use App\Filament\Resources\Programs\Pages\ViewProgram;
+use App\Filament\Resources\Programs\ProgramResource;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -421,5 +422,28 @@ class ProgramTest extends TestCase
         $this->assertCount(50, $programs);
         $this->assertCount(50, $programs->pluck('name')->unique());
         $this->assertCount(50, $programs->pluck('code')->unique());
+    }
+
+    /**
+     * Regression test: `ProgramResource::getNavigationBadge()` is declared
+     * `?string` under `declare(strict_types=1)`, but previously returned the
+     * raw (int) result of `->count()` directly. Under strict types PHP does
+     * not coerce int to string, so every render of the admin panel's
+     * sidebar navigation (any page, not just the Programs pages) threw a
+     * `TypeError`. This asserts the badge resolves to a proper numeric
+     * string and the color badge keys off the `ProgramStatus` enum instead
+     * of a bare magic number.
+     */
+    public function test_program_resource_navigation_badge_reflects_published_count(): void
+    {
+        Program::factory()->published()->active()->count(2)->create();
+        Program::factory()->draft()->active()->create();
+        Program::factory()->archived()->create();
+
+        $badge = ProgramResource::getNavigationBadge();
+
+        $this->assertIsString($badge);
+        $this->assertSame('2', $badge);
+        $this->assertSame('warning', ProgramResource::getNavigationBadgeColor());
     }
 }
