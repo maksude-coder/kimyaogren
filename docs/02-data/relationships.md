@@ -125,7 +125,7 @@ public function theoryArticles(): HasMany
 |--------------|------|---------|-----|---------|
 | unit | BelongsTo | Unit | `unit_id` | CASCADE DELETE |
 | learningObjectives | HasMany | LearningObjective | `topic_id` | CASCADE DELETE |
-| questions | HasMany | Question | `topic_id` | CASCADE DELETE (see note above — Question is not part of the ownership tree; this specific rule predates this decision and is out of scope for it) |
+| questions | HasMany | Question | `topic_id` | RESTRICT — a topic that has questions cannot be force-deleted (PM decision 16.11.2026, `DEBT-005`) |
 | theoryArticles | HasMany | TheoryArticle | `topic_id` | CASCADE DELETE (same note as `questions` above) |
 
 ### LearningObjective
