@@ -47,6 +47,21 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function suspended(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 3,
+        ]);
+    }
+
+    public function graduate(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'grade_id' => null,
+            'is_graduate' => true,
+        ]);
+    }
+
     public function admin(): static
     {
         return $this->state(fn (array $attributes) => [

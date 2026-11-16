@@ -7,7 +7,7 @@
 - **Owner**: Content Domain Lead
 - **Created**: 2024-01-15
 - **Approved By**: Architect, PM
-- **Version**: 1.0
+- **Version**: 1.1 (Sprint 2.2 — see Revision Notes)
 
 ## Columns
 
@@ -24,6 +24,10 @@
 | view_count | INT UNSIGNED | NOT NULL, DEFAULT 0 | Page views | 1250 |
 | read_time_minutes | SMALLINT UNSIGNED | NULLABLE | Estimated read time | 8 |
 | difficulty | TINYINT UNSIGNED | NOT NULL, DEFAULT 3 | 1-5 scale | 3 |
+| order | SMALLINT UNSIGNED | NOT NULL, DEFAULT 0 | Display order within topic (v1.1) | 4 |
+| featured_image_path | VARCHAR(500) | NULLABLE | Root-relative cover image, used for og:image (v1.1) | "/wp-content/uploads/2022/05/x.jpg" |
+| legacy_slug | VARCHAR(220) | NULLABLE, UNIQUE | Global public URL segment `/{legacy_slug}/` (v1.1, ADR-004) | "notrallesme-tepkimeleri" |
+| legacy_wp_id | BIGINT UNSIGNED | NULLABLE, UNIQUE | WordPress post id; import idempotency key (v1.1) | 2727 |
 | meta_title | VARCHAR(60) | NULLABLE | SEO title | "Bohr Atom Modeli - KimyaÖğren" |
 | meta_description | VARCHAR(160) | NULLABLE | SEO description | "Bohr atom modeli detaylı..." |
 | canonical_url | VARCHAR(500) | NULLABLE | Canonical for SEO | "https://kimyaogren.com/konu/bohr-atom-modeli" |
@@ -43,6 +47,8 @@
 | idx_articles_topic_status | (topic_id, status, is_active) | BTREE | Topic + published filter |
 | idx_articles_published | published_at | BTREE | Date queries |
 | idx_articles_status | status | BTREE | Status filter |
+| uk_articles_legacy_slug | legacy_slug | UNIQUE | Legacy URL lookup (v1.1) |
+| uk_articles_legacy_wp_id | legacy_wp_id | UNIQUE | Import idempotency (v1.1) |
 
 ## Relationships
 
@@ -66,6 +72,12 @@
 6. **View count** incremented on student view
 7. **Read time** auto-calculated from content length
 8. **Deleting topic** cascades to articles
+
+## Revision Notes
+
+**v1.1 (Sprint 2.2, ADR-004):** added `order` (topic-scoped display order, same pattern as every Epic 1 entity), `featured_image_path`, `legacy_slug` (globally unique — the one deliberate exception to the per-parent scoping default, because it mirrors WordPress's flat URL namespace) and `legacy_wp_id`. `tags`/`media` relationships remain designed but unimplemented. Business rule 9 added.
+
+9. **Legacy URL**: an article with `legacy_slug` is publicly served at `/{legacy_slug}/`; the value is never changed after import
 
 ## Enum Definitions
 

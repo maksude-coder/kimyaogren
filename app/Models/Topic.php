@@ -64,6 +64,11 @@ class Topic extends Model
         return $this->hasMany(LearningObjective::class);
     }
 
+    public function theoryArticles(): HasMany
+    {
+        return $this->hasMany(TheoryArticle::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_id');
