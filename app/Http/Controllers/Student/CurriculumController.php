@@ -114,6 +114,8 @@ class CurriculumController extends Controller
             // "Soru çöz" panel (Sprint 3.2): sizes the topic can fill, and the student's open session.
             'sizeChoices' => PracticeSession::sizeChoices($topic->questions()->approved()->count()),
             'openSession' => $request->user()?->practiceSessions()->where('topic_id', $topic->id)->open()->latest('id')->first(),
+            // The student's mastery of the topic (Sprint 3.3); null before their first answer.
+            'mastery' => $request->user()?->topicMasteries()->where('topic_id', $topic->id)->first(),
         ]);
     }
 

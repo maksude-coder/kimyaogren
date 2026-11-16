@@ -132,8 +132,36 @@ class PracticeSession extends Model
             'started_at' => Carbon::now(),
             'time_limit_seconds' => $timed ? count($questionIds) * self::SECONDS_PER_QUESTION : null,
             'question_count' => count($questionIds),
-            'session_data' => ['question_ids' => $questionIds, 'flagged' => []],
+            'session_data' => [
+                'question_ids' => $questionIds,
+                'flagged' => [],
+                'mastery_before' => self::masteryOf($user->id, $topic->id),
+            ],
         ]);
+    }
+
+    /**
+     * The student's displayed mastery of a topic right now; null without enough data.
+     */
+    private static function masteryOf(int $userId, ?int $topicId): ?int
+    {
+        return $topicId === null
+            ? null
+            : TopicMastery::query()->where('user_id', $userId)->where('topic_id', $topicId)->first()?->displayPercentage();
+    }
+
+    /**
+     * Topic mastery when the session started and when it was completed
+     * (Sprint 3.3 plan § 2, rule 11); each null without enough data.
+     *
+     * @return array{before: int|null, after: int|null}
+     */
+    public function masteryChange(): array
+    {
+        return [
+            'before' => $this->session_data['mastery_before'] ?? null,
+            'after' => $this->session_data['mastery_after'] ?? null,
+        ];
     }
 
     // Questions
@@ -225,7 +253,7 @@ class PracticeSession extends Model
             throw new DomainException('The answer does not belong to this session.');
         }
 
-        return $this->attempts()->firstOrCreate(
+        $attempt = $this->attempts()->firstOrCreate(
             ['question_id' => $question->id, 'attempt_number' => 1],
             [
                 'user_id' => $this->user_id,
@@ -235,6 +263,13 @@ class PracticeSession extends Model
                 'answered_at' => Carbon::now(),
             ],
         );
+
+        // Every new answer moves the student's mastery of the topic (Sprint 3.3 plan § 2, rule 4).
+        if ($attempt->wasRecentlyCreated) {
+            TopicMastery::refreshFor($this->user_id, $question->topic_id);
+        }
+
+        return $attempt;
     }
 
     // Timer and completion
@@ -295,6 +330,7 @@ class PracticeSession extends Model
             'correct_count' => $correct,
             'skipped_count' => max(0, $this->question_count - $answered),
             'score' => $this->question_count > 0 ? round($correct / $this->question_count * 100, 2) : 0,
+            'session_data' => [...($this->session_data ?? []), 'mastery_after' => self::masteryOf($this->user_id, $this->topic_id)],
         ]);
     }
 

@@ -61,6 +61,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(QuestionAttempt::class);
     }
 
+    public function topicMasteries(): HasMany
+    {
+        return $this->hasMany(TopicMastery::class);
+    }
+
     /**
      * Whether the student still has to answer "Kaçıncı sınıftasın?".
      */

@@ -22,7 +22,7 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-010 | `program_versions` migration declared a `constrained()` FK to `programs` before `programs` existed. SQLite tolerated it; a fresh MySQL install would not. | **Resolved** | Critical | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved in Epic 1 Final Stabilization (2026-07-19) — migrations split into correct creation order |
 | DEBT-011 | `ProgramsTable`'s header `Action::make('export')` redirected to `route('filament.admin.resources.programs.export')`, a route that was never registered — clicking it in the admin UI threw `RouteNotFoundException`. No export architecture (package, controller, page) exists anywhere in the repo. | **Resolved** | High | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved same sprint — action removed |
 | DEBT-012 | `dd-program.md`'s Business Rules (#5, #6, #8) and `domain-program.md`'s full Lifecycle/Versioning section described publish-time immutable snapshots, archived-read-only enforcement, and a 30-day force-delete grace period as current requirements — but no code implemented any of it. | **Resolved (by decision)** | High | PM/Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Officially deferred to a future Epic — ADR-003, resolved 2026-07-19 |
-| DEBT-013 | `LegacyContentTest::test_topic_page_links_to_articles_in_order` is flaky: `TheoryArticleFactory` draws `order` from 0–10 and the test pins only the second article to `order = 0`, so about 1 run in 11 ties and fails | Open | Medium | Architect | Sprint 2.3 (seen once in a full-suite run) | Next Content-domain task |
+| DEBT-013 | `LegacyContentTest::test_topic_page_links_to_articles_in_order` is flaky: `TheoryArticleFactory` draws `order` from 0–10 and the test pins only the second article to `order = 0`, so about 1 run in 11 ties and fails | **Resolved** | Medium | Architect | Sprint 2.3 (seen once in a full-suite run) | Resolved 16.11.2026 on PM instruction (commit `a8b1288`) — the first article gets `order = 1`; 25 consecutive runs passed |
 | DEBT-014 | `ProgramResource::getNavigationBadge(): ?string` returned the `int` from `count()`; under `strict_types` every admin panel page that renders the navigation threw a `TypeError` | **Resolved** | Critical | Architect | Sprint 3.1 (browser verification of the question screens) | Resolved in Sprint 3.1 — `(string)` cast, `AdminPanelTest` |
 
 ---
@@ -423,7 +423,9 @@ Either way, the current state (docs claim it works; code doesn't) should not per
 
 ---
 
-## DEBT-013: Flaky Article-Order Test (Content Domain)
+## DEBT-013: Flaky Article-Order Test (Content Domain) — RESOLVED
+
+**Status: Resolved, 16.11.2026 (PM instruction after the Sprint 3.2 browser pass).** The test now pins the first article to `order = 1` (commit `a8b1288`).
 
 ### Description
 

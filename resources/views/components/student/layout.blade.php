@@ -2,19 +2,32 @@
 
 {{--
     Student app shell (§ 02–04): sidebar on desktop, top bar on mobile.
-    Only destinations that exist are listed (Bugün / İlerleme / Profil
-    arrive with their domains — Sprint 2.1 plan § 2).
+    Only destinations that exist are listed (Bugün / Profil arrive with
+    their domains — Sprint 2.1 plan § 2). İlerleme is for signed-in students.
 --}}
-@php($user = auth()->user())
+@php
+    $user = auth()->user();
+
+    $destinations = [
+        ['label' => 'Müfredat', 'url' => route('curriculum.index'), 'current' => request()->routeIs('curriculum.*')],
+    ];
+
+    if ($user) {
+        $destinations[] = ['label' => 'İlerleme', 'url' => route('progress.index'), 'current' => request()->routeIs('progress.*')];
+    }
+@endphp
 
 <x-student.document :title="$title" :description="$description" :head="$head">
     <a href="#icerik" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-20 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3">İçeriğe geç</a>
 
     <div class="min-h-screen lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
         <header class="sticky top-0 z-10 flex min-h-16 items-center gap-2 border-b border-line bg-bg px-5 lg:hidden">
-            <x-student.logo />
+            {{-- Signed-in students have one more menu entry; the wordmark gives way on narrow screens. --}}
+            <x-student.logo :compact="(bool) $user" />
             <nav aria-label="Ana menü" class="ml-auto flex items-center">
-                <a href="{{ route('curriculum.index') }}" @if (request()->routeIs('curriculum.*')) aria-current="page" @endif class="flex min-h-11 items-center px-3 text-[15px] font-semibold text-amber-ink">Müfredat</a>
+                @foreach ($destinations as $destination)
+                    <a href="{{ $destination['url'] }}" @if ($destination['current']) aria-current="page" @endif @class(['flex min-h-11 items-center px-2.5 text-[15px] font-semibold', 'text-amber-ink' => $destination['current'], 'text-ink2' => ! $destination['current']])>{{ $destination['label'] }}</a>
+                @endforeach
                 @auth
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -30,9 +43,15 @@
             <x-student.logo class="px-2" />
 
             <nav aria-label="Ana menü" class="flex flex-col gap-1">
-                <a href="{{ route('curriculum.index') }}" @if (request()->routeIs('curriculum.*')) aria-current="page" @endif class="flex min-h-11 items-center gap-3 rounded-lg bg-amber-soft px-3 font-semibold text-ink no-underline">
-                    <span aria-hidden="true" class="size-4 rounded-[3px] bg-amber-ink"></span>Müfredat
-                </a>
+                @foreach ($destinations as $destination)
+                    <a href="{{ $destination['url'] }}" @if ($destination['current']) aria-current="page" @endif @class([
+                        'flex min-h-11 items-center gap-3 rounded-lg px-3 no-underline',
+                        'bg-amber-soft font-semibold text-ink' => $destination['current'],
+                        'font-medium text-ink2 hover:bg-surface2 hover:text-ink' => ! $destination['current'],
+                    ])>
+                        <span aria-hidden="true" @class(['size-4 rounded-[3px]', 'bg-amber-ink' => $destination['current'], 'border-[1.5px] border-ink3' => ! $destination['current']])></span>{{ $destination['label'] }}
+                    </a>
+                @endforeach
             </nav>
 
             <div class="mt-auto flex flex-col gap-3">

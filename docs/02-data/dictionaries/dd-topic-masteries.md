@@ -3,11 +3,11 @@
 ## Overview
 - **Table**: `topic_masteries`
 - **Domain**: Progress
-- **Purpose**: Track student mastery level per topic with SM-2 spaced repetition data
+- **Purpose**: Track student mastery level per topic; carries the SM-2 spaced repetition columns for later use
 - **Owner**: Progress Domain Lead
 - **Created**: 2024-01-15
 - **Approved By**: Architect, PM
-- **Version**: 1.0
+- **Version**: 1.1
 
 ## Columns
 
@@ -16,8 +16,8 @@
 | id | BIGINT UNSIGNED | PK, AI | Primary key | 1 |
 | user_id | BIGINT UNSIGNED | FK → users.id, CASCADE | Student | 42 |
 | topic_id | BIGINT UNSIGNED | FK → topics.id, CASCADE | Topic | 5 |
-| mastery_percentage | DECIMAL(5,2) | NOT NULL, DEFAULT 0.00 | Mastery 0-100 | 73.50 |
-| mastery_level | TINYINT UNSIGNED | NOT NULL, DEFAULT 0 | 0=Novice, 1=Learning, 2=Proficient, 3=Mastered | 2 |
+| mastery_percentage | DECIMAL(5,2) | NOT NULL, DEFAULT 0.00 | Accuracy (0-100) on the last 20 answers in the topic | 70.00 |
+| mastery_level | TINYINT UNSIGNED | NOT NULL, DEFAULT 0 | 0=InsufficientData, 1=Weak, 2=Developing, 3=Proficient, 4=Mastered | 3 |
 | total_attempts | INT UNSIGNED | NOT NULL, DEFAULT 0 | Lifetime attempts | 47 |
 | correct_attempts | INT UNSIGNED | NOT NULL, DEFAULT 0 | Lifetime correct | 35 |
 | last_practiced_at | TIMESTAMP | NULLABLE | Last attempt timestamp | 2024-01-15 14:32:15 |
@@ -51,19 +51,20 @@
 ## Business Rules
 
 1. **Unique per user-topic** (enforced by unique index)
-2. **Mastery Level Calculation**:
-   - 0 (Novice): 0-29%
-   - 1 (Learning): 30-59%
-   - 2 (Proficient): 60-79%
-   - 3 (Mastered): 80-100%
-3. **SM-2 Algorithm Fields**:
+2. **Mastery Level Calculation** (design § 06):
+   - 0 (InsufficientData): fewer than 5 answers in the topic
+   - 1 (Weak): below 50%
+   - 2 (Developing): 50-64%
+   - 3 (Proficient): 65-79%
+   - 4 (Mastered): 80-100%
+3. **SM-2 Algorithm Fields** (not implemented yet — the columns keep their defaults):
    - `ease_factor`: Starts 2.5, adjusts 1.3-2.5
    - `interval_days`: Days until next review
    - `repetitions`: Consecutive correct reviews
    - `next_review_at`: Calculated from last_reviewed + interval
-4. **`is_due`**: True when `next_review_at <= NOW()` OR never practiced
-5. **Mastery %**: Weighted by recency (exponential decay) and correctness
-6. **Auto-created** on first question attempt for topic
+4. **`is_due`**: True when `next_review_at <= NOW()` — set once spaced repetition is built; `false` until then
+5. **Mastery %**: share of correct answers among the student's last 20 answers to the topic's questions (`answered_at`, then `id`); recomputed from `question_attempts` after every answer, never incremented
+6. **Auto-created** on first question attempt for topic; `total_attempts` / `correct_attempts` are lifetime counts
 7. **Cascade delete** on user/topic deletion
 
 ## Enum Definitions
@@ -71,17 +72,18 @@
 ### MasteryLevel (cast to MasteryLevel::class)
 | Value | Label | Range | Description |
 |-------|-------|-------|-------------|
-| 0 | Novice | 0-29% | New or struggling |
-| 1 | Learning | 30-59% | Making progress |
-| 2 | Proficient | 60-79% | Solid understanding |
-| 3 | Mastered | 80-100% | Ready for advanced |
+| 0 | InsufficientData | fewer than 5 answers | "Yeterli veri yok" |
+| 1 | Weak | < 50% | "Zayıf" |
+| 2 | Developing | 50-64% | "Gelişiyor" |
+| 3 | Proficient | 65-79% | "Yetkin" |
+| 4 | Mastered | 80-100% | "Usta" |
 
 ## Sample Data
 
 ```sql
 -- Student has practiced topic, due for review
 INSERT INTO topic_masteries (user_id, topic_id, mastery_percentage, mastery_level, total_attempts, correct_attempts, last_practiced_at, next_review_at, ease_factor, interval_days, repetitions, is_due, created_at, updated_at) VALUES
-(42, 5, 73.50, 2, 47, 35, '2024-01-15 14:32:15', '2024-01-18 14:32:15', 2.40, 3, 2, true, '2024-01-10 10:00:00', '2024-01-15 14:32:15');
+(42, 5, 70.00, 3, 47, 35, '2024-01-15 14:32:15', '2024-01-18 14:32:15', 2.40, 3, 2, true, '2024-01-10 10:00:00', '2024-01-15 14:32:15');
 
 -- New topic (never practiced)
 INSERT INTO topic_masteries (user_id, topic_id, mastery_percentage, mastery_level, total_attempts, correct_attempts, is_due, created_at, updated_at) VALUES
@@ -101,6 +103,15 @@ INSERT INTO topic_masteries (user_id, topic_id, mastery_percentage, mastery_leve
 - [ ] Tested: `php artisan migrate:fresh --seed`
 - [ ] Tested: `php artisan migrate:rollback`
 
+## Revision Notes
+
+### v1.1 — Sprint 3.3 (PM decisions, 16.11.2026)
+
+- Mastery follows design § 06 instead of the recency-weighted formula: accuracy on the last 20 answers, at least 5 answers, levels at 50 / 65 / 80%.
+- `mastery_level` gains `0 = InsufficientData`; the other values move up by one and change their ranges.
+- The SM-2 columns and `is_due` are created but unused; rule 4 no longer treats a never-practised topic as due.
+- Rows are created on the first answer, not in advance, so the "never practiced" sample row does not occur.
+
 ---
 
-*Generated from Data Dictionary v1.0*
+*Generated from Data Dictionary v1.1*

@@ -15,7 +15,8 @@ Let the content team enter, review and approve YKS-format chemistry questions, e
 | Bulk import (CSV/JSON), export | 3.1 | Later |
 | Remaining question types (short answer, fill blank, matching, ordering, essay) | Student designs for each type | Later |
 | Student question solving (design § 05, 09): topic practice, timer, summary | `practice_sessions`, `question_attempts` (Practice domain) | **3.2** |
-| Mastery, weak-area practice, spaced repetition | `topic_masteries`, `spaced_repetition_schedules` | Later |
+| Topic mastery and the progress panel (design § 06) | `topic_masteries` (Progress domain) | **3.3** |
+| Weak-area practice, spaced repetition | `topic_masteries`, `spaced_repetition_schedules` | Later |
 | Exams (`exams`, sections, attempts) | Question bank | Later |
 
 ## Cross-Cutting Rules

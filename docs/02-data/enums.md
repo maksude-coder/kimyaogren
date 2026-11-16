@@ -231,10 +231,11 @@ enum PracticeSessionType: string
 ```php
 enum MasteryLevel: int
 {
-    case Novice = 0;      // 0-29%
-    case Learning = 1;    // 30-59%
-    case Proficient = 2;  // 60-79%
-    case Mastered = 3;    // 80-100%
+    case InsufficientData = 0; // fewer than 5 answers
+    case Weak = 1;             // below 50%
+    case Developing = 2;       // 50-64%
+    case Proficient = 3;       // 65-79%
+    case Mastered = 4;         // 80-100%
 }
 ```
 

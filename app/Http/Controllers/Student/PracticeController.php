@@ -160,6 +160,7 @@ class PracticeController extends Controller
             'rows' => $rows,
             'missed' => $rows->filter(fn (array $row): bool => ! $row['attempt']?->is_correct)->values(),
             'objectives' => $this->objectiveBreakdown($rows),
+            'mastery' => $session->masteryChange(),
             'averageSeconds' => $session->question_count > 0 ? intdiv($session->durationSeconds(), $session->question_count) : 0,
         ]);
     }

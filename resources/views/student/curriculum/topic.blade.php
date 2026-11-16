@@ -25,6 +25,17 @@
                     @if ($objectives->isNotEmpty())
                         <span>{{ $objectives->count() }} kazanım</span>
                     @endif
+                    @if ($mastery)
+                        <span class="inline-flex flex-wrap items-center gap-x-1.5">
+                            Ustalık
+                            @if ($mastery->hasEnoughData())
+                                <span class="font-mono font-semibold text-ink">%{{ $mastery->displayPercentage() }}</span> ·
+                                <x-student.mastery :level="$mastery->mastery_level" class="text-sm" />
+                            @else
+                                <span class="text-ink3">· {{ mb_strtolower(__('curriculum.mastery.0')) }} ({{ $mastery->total_attempts }}/{{ \App\Enums\MasteryLevel::MINIMUM_ATTEMPTS }} soru)</span>
+                            @endif
+                        </span>
+                    @endif
                 </div>
             </div>
 

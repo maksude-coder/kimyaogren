@@ -8,6 +8,7 @@ use App\Http\Controllers\Student\Auth\RegisterController;
 use App\Http\Controllers\Student\CurriculumController;
 use App\Http\Controllers\Student\LegacyContentController;
 use App\Http\Controllers\Student\PracticeController;
+use App\Http\Controllers\Student\ProgressController;
 use App\Http\Middleware\UseStudentLocale;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +49,9 @@ Route::middleware(UseStudentLocale::class)->group(function (): void {
             ->name('verification.send');
 
         Route::post('cikis', [LoginController::class, 'destroy'])->name('logout');
+
+        // Progress panel (design § 06, Sprint 3.3).
+        Route::get('ilerleme', [ProgressController::class, 'index'])->name('progress.index');
 
         // Topic practice (design § 05, § 09, Sprint 3.2).
         Route::controller(PracticeController::class)->prefix('calis')->name('practice.')->group(function (): void {

@@ -35,6 +35,20 @@
             @endif
         </p>
 
+        @if ($mastery['after'] !== null)
+            <p class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-[14px] border border-line bg-surface px-4 py-3 text-[15px]">
+                <span class="font-medium">Konu ustalığı</span>
+                <span class="font-mono text-base font-semibold">
+                    @if ($mastery['before'] !== null && $mastery['before'] !== $mastery['after'])
+                        %{{ $mastery['before'] }} <span aria-hidden="true">→</span><span class="sr-only">değerinden</span> %{{ $mastery['after'] }}
+                    @else
+                        %{{ $mastery['after'] }}
+                    @endif
+                </span>
+                <span class="text-[13px] text-ink3">Ustalık: son {{ \App\Models\TopicMastery::WINDOW }} sorudaki doğruluk.</span>
+            </p>
+        @endif
+
         <section aria-labelledby="kazanim-bazinda" class="flex flex-col gap-3">
             <h2 id="kazanim-bazinda" class="text-lg font-semibold">Kazanım bazında</h2>
             <ul class="overflow-hidden rounded-[14px] border border-line bg-surface">

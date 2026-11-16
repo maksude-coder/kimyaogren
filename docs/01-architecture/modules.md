@@ -14,7 +14,7 @@ Detailed specification of each domain module: boundaries, entities, relationship
 | **Content** | Theory & Media | Designed | 3-4 | [domain-content.md](domain-content.md) |
 | **Assessment** | Questions & Exams | Designed | 7-8 | [domain-assessment.md](domain-assessment.md) |
 | **Practice** | Spaced Repetition | Designed | 9-11 | [domain-practice.md](domain-practice.md) |
-| **Progress** | Mastery & Analytics | Designed | 13-16 | [domain-progress.md](domain-progress.md) |
+| **Progress** | Mastery & Analytics | Partly implemented (Sprint 3.3) | 13-16 | [domain-progress.md](domain-progress.md) |
 | **User** | Auth & Authorization | Designed | 1 | [domain-user.md](domain-user.md) |
 | **Media** | File Management | Designed | 3 | [domain-media.md](domain-media.md) |
 | **Settings** | Configuration | Designed | 5 | [domain-settings.md](domain-settings.md) |
@@ -241,7 +241,7 @@ SpacedRepetitionSchedule > (1) Question
 | Max Interval | 365 days | Yes |
 
 ### Key Business Rules
-- Mastery = weighted correct rate with recency decay
+- Mastery = accuracy on the student's last 20 answers in the topic, at least 5 answers (Sprint 3.3, design § 06; `dd-topic-masteries.md` v1.1)
 - Due queue prioritized by: overdue → due today → new
 - Session types: Topic Practice, Mixed Review, Weak Areas, Exam Sim
 - A session starts with as many approved questions as the topic has, up to the chosen size (PM decision 16.11.2026; the former 5-question minimum is removed)
@@ -265,10 +265,10 @@ Mastery tracking, analytics, reporting, intervention alerts.
 ### Key Metrics
 | Metric | Calculation |
 |--------|-------------|
-| Topic Mastery | `weighted_correct_rate * recency_factor` |
+| Topic Mastery | correct / answered over the last 20 answers in the topic (min. 5) |
 | Overall Progress | Average of topic masteries in curriculum |
 | Study Streak | Consecutive days with ≥1 session |
-| Weak Areas | Topics with mastery < 60% and ≥ 10 attempts |
+| Weak Areas | Objectives with ≥ 5 answers and < 50% correct over the last 20 (Sprint 3.3); topic-level weak areas come with the "Bugün" page |
 | YKS Readiness | Simulated score based on current mastery |
 
 ### API

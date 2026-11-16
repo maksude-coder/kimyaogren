@@ -8,7 +8,9 @@
 | **Bounded Context** | Student Mastery Tracking, Analytics, Reporting |
 | **Core Responsibility** | Mastery calculation, weakness detection, progress visualization, predictive analytics |
 | **Owner** | Progress Domain Lead |
-| **Status** | Designed |
+| **Status** | Partly implemented (Sprint 3.3: `topic_masteries`, progress panel) |
+
+> **Sprint 3.3 (PM decision, 16.11.2026):** topic mastery follows design § 06 — accuracy on the last 20 answers, at least 5 answers, levels at 50 / 65 / 80%. `dd-topic-masteries.md` v1.1 is authoritative. The weighted formula, level thresholds, "minimum attempts for level up" table, weak-area detection and scheduled jobs below describe the original design and are **not implemented**.
 
 ## 2. Purpose
 
@@ -29,7 +31,7 @@ The Progress domain transforms raw attempt data into actionable insights:
 | `user_id` | BIGINT UNSIGNED | NOT NULL, FK → users.id, CASCADE | Student |
 | `topic_id` | BIGINT UNSIGNED | NOT NULL, FK → topics.id, CASCADE | Topic |
 | `mastery_percentage` | DECIMAL(5,2) | NOT NULL DEFAULT 0.00 | 0.00 - 100.00 |
-| `mastery_level` | TINYINT UNSIGNED | NOT NULL DEFAULT 0 | 0=Novice, 1=Learning, 2=Proficient, 3=Mastered |
+| `mastery_level` | TINYINT UNSIGNED | NOT NULL DEFAULT 0 | 0=InsufficientData, 1=Weak, 2=Developing, 3=Proficient, 4=Mastered (dictionary v1.1) |
 | `total_attempts` | INT UNSIGNED | NOT NULL DEFAULT 0 | Lifetime |
 | `correct_attempts` | INT UNSIGNED | NOT NULL DEFAULT 0 | Lifetime |
 | `last_practiced_at` | TIMESTAMP | NULLABLE | |

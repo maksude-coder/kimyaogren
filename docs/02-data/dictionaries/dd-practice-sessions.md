@@ -7,7 +7,7 @@
 - **Owner**: Practice Domain Lead
 - **Created**: 2024-01-15
 - **Approved By**: Architect, PM
-- **Version**: 1.1
+- **Version**: 1.2
 
 ## Columns
 
@@ -24,8 +24,7 @@
 | correct_count | SMALLINT UNSIGNED | NOT NULL, DEFAULT 0 | Correct answers | 14 |
 | skipped_count | SMALLINT UNSIGNED | NOT NULL, DEFAULT 0 | Skipped questions | 1 |
 | score | DECIMAL(5,2) | NULLABLE | Percentage score | 70.00 |
-| session_data | JSON | NULLABLE | Session configuration: ordered `question_ids`, `flagged` question ids | {"question_ids": [12, 7, 31], "flagged": [7]} |
-| session_data | JSON | NULLABLE | Session configuration: ordered `question_ids`, `flagged` question ids | {"question_ids": [12, 7, 31], "flagged": [7]} |
+| session_data | JSON | NULLABLE | Session configuration: ordered `question_ids`, `flagged` question ids, topic mastery at start and at completion (`mastery_before`, `mastery_after`; whole percentages, `null` without enough data) | {"question_ids": [12, 7, 31], "flagged": [7], "mastery_before": 42, "mastery_after": 55} |
 | created_at | TIMESTAMP | NOT NULL | Creation time | 2024-01-15 14:30:00 |
 | updated_at | TIMESTAMP | NOT NULL | Last update | 2024-01-15 14:45:00 |
 
@@ -104,6 +103,11 @@ INSERT INTO practice_sessions (user_id, type, started_at, completed_at, question
 - `skipped_count` = questions without an attempt when the session is completed.
 - **Implemented type:** `topic` only. No `uuid` column (the dictionary, not `domain-practice.md`, is authoritative).
 
+### v1.2 — Sprint 3.3
+
+- `session_data` also keeps `mastery_before` (set when the session starts) and `mastery_after` (set when it is completed) for the summary's "Konu ustalığı %42 → %55". Sessions from before Sprint 3.3 have neither key.
+- Removed a duplicated `session_data` row from the column table.
+
 ---
 
-*Generated from Data Dictionary v1.1*
+*Generated from Data Dictionary v1.2*

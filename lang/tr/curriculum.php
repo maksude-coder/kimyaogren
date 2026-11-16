@@ -19,4 +19,13 @@ return [
         4 => 'Zor',
         5 => 'Çok zor',
     ],
+
+    // MasteryLevel (design § 06).
+    'mastery' => [
+        0 => 'Yeterli veri yok',
+        1 => 'Zayıf',
+        2 => 'Gelişiyor',
+        3 => 'Yetkin',
+        4 => 'Usta',
+    ],
 ];
