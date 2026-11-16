@@ -7,7 +7,7 @@
 - **Owner**: Practice Domain Lead
 - **Created**: 2024-01-15
 - **Approved By**: Architect, PM
-- **Version**: 1.0
+- **Version**: 1.1
 
 ## Columns
 
@@ -24,6 +24,8 @@
 | correct_count | SMALLINT UNSIGNED | NOT NULL, DEFAULT 0 | Correct answers | 14 |
 | skipped_count | SMALLINT UNSIGNED | NOT NULL, DEFAULT 0 | Skipped questions | 1 |
 | score | DECIMAL(5,2) | NULLABLE | Percentage score | 70.00 |
+| session_data | JSON | NULLABLE | Session configuration: ordered `question_ids`, `flagged` question ids | {"question_ids": [12, 7, 31], "flagged": [7]} |
+| session_data | JSON | NULLABLE | Session configuration: ordered `question_ids`, `flagged` question ids | {"question_ids": [12, 7, 31], "flagged": [7]} |
 | created_at | TIMESTAMP | NOT NULL | Creation time | 2024-01-15 14:30:00 |
 | updated_at | TIMESTAMP | NOT NULL | Last update | 2024-01-15 14:45:00 |
 
@@ -51,7 +53,7 @@
 
 1. **Type Enum**: topic, mixed_review, weak_areas, timed_quiz, exam_simulation
 2. Topic required for `topic` type; null for others
-3. `time_limit_seconds` only for timed_quiz/exam_simulation
+3. `time_limit_seconds` for timed_quiz/exam_simulation, and for `topic` sessions when the student chooses "Süre tut" (question_count × 90)
 4. Session incomplete until `completed_at` set
 4. Score = (correct / question_count) * 100
 5. Incomplete sessions (no completed_at) excluded from analytics
@@ -93,6 +95,15 @@ INSERT INTO practice_sessions (user_id, type, started_at, completed_at, question
 - [ ] Tested: `php artisan migrate:fresh --seed`
 - [ ] Tested: `php artisan migrate:rollback`
 
+## Revision Notes
+
+### v1.1 — Sprint 3.2 (PM decisions, 16.11.2026)
+
+- Added `session_data` (already described in `domain-practice.md`): the session's questions are fixed at start and must be stored somewhere; `question_attempts` cannot hold unanswered rows because `is_correct` is NOT NULL.
+- `time_limit_seconds` may be set on `topic` sessions; the server completes the session at `started_at + time_limit_seconds`.
+- `skipped_count` = questions without an attempt when the session is completed.
+- **Implemented type:** `topic` only. No `uuid` column (the dictionary, not `domain-practice.md`, is authoritative).
+
 ---
 
-*Generated from Data Dictionary v1.0*
+*Generated from Data Dictionary v1.1*

@@ -74,8 +74,45 @@
 
         <aside class="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-6 lg:sticky lg:top-8">
             <h2 class="text-lg font-semibold">Soru çöz</h2>
-            <p class="text-[15px] text-ink2">Bu konunun soruları hazırlanıyor. Soru bankası açıldığında buradan 10, 20 ya da 40 soruluk bir oturum başlatabileceksin.</p>
-            <a href="{{ $unitUrl }}" class="btn-secondary mt-1">Üniteye dön</a>
+
+            @if ($sizeChoices === [])
+                <p class="text-[15px] text-ink2">Bu konunun soruları hazırlanıyor.</p>
+                <a href="{{ $unitUrl }}" class="btn-secondary mt-1">Üniteye dön</a>
+            @elseif ($openSession)
+                <p class="text-[15px] text-ink2">Bu konuda yarım kalan bir oturumun var.</p>
+                <a href="{{ route('practice.show', $openSession->id) }}" class="btn-primary mt-1 min-h-[52px]">Kaldığın yerden devam et</a>
+            @else
+                @guest
+                    <p class="text-[15px] text-ink2">Soru çözmek için giriş yap; cevapların kaydedilir ve kaldığın yerden devam edersin.</p>
+                    <a href="{{ route('practice.intent', $topic->id) }}" class="btn-primary mt-1 min-h-[52px]">Soru çöz</a>
+                    <p class="text-center text-sm text-ink3">Hesabın yok mu? <a href="{{ route('register') }}" class="font-semibold">Ücretsiz hesap aç</a></p>
+                @else
+                    <form method="POST" action="{{ route('practice.store') }}" class="flex flex-col gap-4">
+                        @csrf
+                        <input type="hidden" name="topic_id" value="{{ $topic->id }}">
+
+                        <fieldset class="flex flex-col gap-2">
+                            <legend class="mb-2 text-sm font-medium">Soru sayısı</legend>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($sizeChoices as $choice)
+                                    <label class="size-choice">
+                                        <input type="radio" name="size" value="{{ $choice['size'] }}" @checked($loop->first) required class="sr-only">
+                                        {{ $choice['count'] === $choice['size'] ? $choice['count'] : 'Tümü ('.$choice['count'].')' }}
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
+
+                        <label class="flex min-h-11 cursor-pointer items-center gap-3 text-[15px]">
+                            <input type="checkbox" name="timed" value="1" class="size-[22px] flex-none cursor-pointer accent-amber">
+                            Süre tut (soru başına 1,5 dk)
+                        </label>
+
+                        <button type="submit" class="btn-primary min-h-[52px] cursor-pointer">Başla</button>
+                    </form>
+                    <p class="text-sm text-ink3">YKS formatı: 5 şık, cevap sonrası adım adım çözüm.</p>
+                @endguest
+            @endif
         </aside>
     </div>
 </x-student.layout>
