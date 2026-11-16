@@ -7,7 +7,7 @@
 - **Owner**: User Domain Lead
 - **Created**: 2024-01-15
 - **Approved By**: Architect, PM
-- **Version**: 1.0
+- **Version**: 1.1
 
 ## Columns
 
@@ -22,11 +22,13 @@
 | avatar_path | VARCHAR(500) | NULLABLE | Media library path | "avatars/1/abc123.jpg" |
 | role | VARCHAR(30) | NOT NULL, DEFAULT 'student' | Primary role (enum) | "student" |
 | status | TINYINT UNSIGNED | NOT NULL, DEFAULT 1 | 1=Pending, 2=Active, 3=Suspended, 4=Deleted | 2 |
-| grade_id | BIGINT UNSIGNED | FK → grades.id, SET NULL | Student grade | 9 |
+| grade_id | BIGINT UNSIGNED | NULLABLE, FK → grades.id, SET NULL | Student grade (a row of the program-scoped `grades` table) | 9 |
+| is_graduate | BOOLEAN | NOT NULL, DEFAULT FALSE | Graduate preparing for YKS; sees all grades, has no `grade_id` | false |
 | school | VARCHAR(200) | NULLABLE | School name | "Ankara Fen Lisesi" |
 | city | VARCHAR(100) | NULLABLE | City | "Ankara" |
 | birth_year | SMALLINT UNSIGNED | NULLABLE | Birth year | 2008 |
 | parent_email | VARCHAR(255) | NULLABLE | Parent contact | "anne@email.com" |
+| terms_accepted_at | TIMESTAMP | NULLABLE | When the user accepted the terms of use and KVKK notice (set at registration; NULL for accounts created by an admin) | 2026-11-16 10:30:00 |
 | last_active_at | TIMESTAMP | NULLABLE | Last activity | 2024-01-15 14:32:15 |
 | preferences | JSON | NULLABLE | UI/settings prefs | {"theme": "dark", "notifications": true} |
 | remember_token | VARCHAR(100) | NULLABLE | Remember me token | "abc123..." |
@@ -70,6 +72,8 @@
 2. **Role enum**: student, teacher, admin, content_editor
 3. **Status enum**: 1=Pending, 2=Active, 3=Suspended, 4=Deleted
 4. **Grade only for students** - null for teachers/admins
+4a. **Graduate** - `is_graduate = true` implies `grade_id IS NULL`; choosing a grade clears `is_graduate`
+4b. **Self-registration** always creates `role = student`, `status = 2 (Active)`; e-mail verification is requested but not required to use the account (PM decision 16.11.2026)
 5. **Soft deletes** - preserve data on deletion
 6. **Avatar via Media Library** - spatie/laravel-medialibrary
 6. **Preferences JSON** - theme, notifications, language
@@ -117,6 +121,14 @@ INSERT INTO users (name, email, password, role, status, email_verified_at, grade
 - [ ] Tested: `php artisan migrate:fresh --seed`
 - [ ] Tested: `php artisan migrate:rollback`
 
+## Revision Notes
+
+### v1.1 — Sprint 2.3 (PM decisions, 16.11.2026)
+
+- Added `is_graduate` (design § 08 "Mezun · YKS hazırlık") and `terms_accepted_at` (consent record for the terms of use / KVKK notice).
+- `grade_id` documented as NULLABLE (it always was, by its SET NULL rule).
+- **Implemented so far:** `id`, `name`, `email`, `email_verified_at`, `password`, `role`, `status`, `grade_id`, `is_graduate`, `terms_accepted_at`, `remember_token`, timestamps. The remaining columns (`phone`, `avatar_path`, `school`, `city`, `birth_year`, `parent_email`, `last_active_at`, `preferences`, `deleted_at`) and the spatie role/permission tables are added by the sprints that need them.
+
 ---
 
-*Generated from Data Dictionary v1.0*
+*Generated from Data Dictionary v1.1*

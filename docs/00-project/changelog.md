@@ -29,6 +29,8 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 ## Unreleased (Development)
 
 ### Added
+- Sprint 2.3: student registration and login (design § 08) — two-step registration (`/kayit`, `/kayit/sinif` with grade or graduate), login/logout (`/giris`, `/cikis`, remember me, 5-attempt/15-minute lockout), password reset (`/sifremi-unuttum`, `/sifre-sifirla/{token}`), e-mail verification (sent, not enforced), legal page skeletons (`/kullanim-kosullari`, `/kvkk-aydinlatma-metni`), `UserStatus` enum, `users.grade_id` / `is_graduate` / `terms_accepted_at` (`dd-users.md` v1.1), Turkish auth and mail texts, `/mufredat` opens the signed-in student's grade — see `docs/04-sprints/sprint-08-plan.md`, `sprint-08-review.md`
+- `docs/05-backlog/debt-log.md`: `DEBT-013` (flaky article-order test from Sprint 2.2, Open)
 - Initial AI onboarding documentation (AGENTS.md + docs/ai/)
 - Project governance documentation (docs/00-project/)
 - Architecture documentation structure (docs/01-architecture/)
@@ -68,8 +70,17 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - `docs/04-sprints/sprint-05-1-hotfix.md`: Hotfix Sprint 1.5.1 record — `ProgramFactory` name-collision fix, isolated from Sprint 1.5's commit (`DEBT-009`)
 - `docs/05-backlog/debt-log.md`: `DEBT-010` (Program/ProgramVersion migration FK order invalid for MySQL), `DEBT-011` (broken Program export action), `DEBT-012` (Program lifecycle/versioning documented but unimplemented) — all found via GitHub Copilot Agent Repository Review; all now Resolved (see Fixed/Changed below)
 - `docs/06-adr/003-defer-program-lifecycle-versioning.md`: ADR formalizing the decision to defer Program lifecycle/versioning enforcement to a future Epic (`DEBT-012`)
+- Epic 2 (Student Interface), Sprint 2.1 — student interface foundation: design-system tokens (light/dark) and IBM Plex fonts in `resources/css/app.css`/`vite.config.js`; `x-student.*` Blade components (document, layout, logo, periodic cell, Bloom badge, difficulty); Turkish landing page at `/` with an interactive sample question; read-only curriculum browser `/mufredat` → grade → unit → topic (`App\Http\Controllers\Student\CurriculumController`), visible only for published/active curriculum; `App\Support\PeriodicSymbol`; `App\Http\Middleware\UseStudentLocale`; `lang/tr/curriculum.php`; 18 new tests — see `docs/04-sprints/sprint-06-plan.md` / `sprint-06-review.md`
+- `docs/05-backlog/epic-02-student-interface.md`: Epic 2 scope, screen-to-sprint map, cross-cutting design rules
+- Sprint 2.2 — kimyaogren.com content import: `theory_articles`/`theory_versions` tables, `ArticleStatus` enum, `TheoryArticle`/`TheoryVersion` models, `Topic::theoryArticles()`; `php artisan kimyaogren:import-wordpress` (idempotent WordPress REST import, HTML allowlist sanitizing, image download to the original `/wp-content/uploads/…` path); MEB curriculum + 302-post mapping in `database/data/meb-kimya-mufredat.php`; legacy URLs `/{slug}/`, `/category/…`, `/tag/…` via `LegacyContentController` (router fallback); article page and topic article list; 20 new tests — see `docs/04-sprints/sprint-07-plan.md` / `sprint-07-review.md`
+- `docs/06-adr/004-preserve-wordpress-urls.md`: keep WordPress URLs and image paths unchanged
+
+### Removed
+- Laravel skeleton `resources/views/welcome.blade.php` and `tests/Feature/ExampleTest.php` (replaced by the landing page and `tests/Feature/Student/HomePageTest.php`)
 
 ### Changed
+- `docs/02-data/dictionaries/dd-theory-articles.md` v1.1: `order`, `featured_image_path`, globally unique `legacy_slug`, `legacy_wp_id` (ADR-004)
+- `public/.htaccess`: removed Laravel's trailing-slash redirect so WordPress-style URLs stay canonical (ADR-004)
 - `docs/02-data/dictionaries/dd-program.md` reconciled with the actual Task 1.1 implementation (see "Review Notes" section in that file for details)
 - `docs/01-architecture/domain-program.md` relationship table reconciled to match the actual implementation (removed undelivered `translations`/`enrollments` entries); added a note on the `grades` / `media` forward declarations
 - `docs/02-data/dictionaries/dd-grades.md` reconciled from a global lookup table design to Program-scoped (v2.0, Task 1.2 — see Revision Notes in that file); soft-delete-vs-force-delete cascade wording clarified in Business Rule #5

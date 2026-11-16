@@ -355,8 +355,8 @@ POST /api/v1/user/two-factor/disable
 | Rule | Value |
 |------|-------|
 | Minimum Length | 8 characters |
-| Require Uppercase | Yes |
-| Require Lowercase | Yes |
+| Require Uppercase | No (PM decision 16.11.2026 — follows design § 08) |
+| Require Lowercase | No (PM decision 16.11.2026) |
 | Require Numbers | Yes |
 | Require Symbols | No (optional) |
 | Max Login Attempts | 5 per 15 minutes |

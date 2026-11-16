@@ -22,6 +22,7 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-010 | `program_versions` migration declared a `constrained()` FK to `programs` before `programs` existed. SQLite tolerated it; a fresh MySQL install would not. | **Resolved** | Critical | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved in Epic 1 Final Stabilization (2026-07-19) — migrations split into correct creation order |
 | DEBT-011 | `ProgramsTable`'s header `Action::make('export')` redirected to `route('filament.admin.resources.programs.export')`, a route that was never registered — clicking it in the admin UI threw `RouteNotFoundException`. No export architecture (package, controller, page) exists anywhere in the repo. | **Resolved** | High | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved same sprint — action removed |
 | DEBT-012 | `dd-program.md`'s Business Rules (#5, #6, #8) and `domain-program.md`'s full Lifecycle/Versioning section described publish-time immutable snapshots, archived-read-only enforcement, and a 30-day force-delete grace period as current requirements — but no code implemented any of it. | **Resolved (by decision)** | High | PM/Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Officially deferred to a future Epic — ADR-003, resolved 2026-07-19 |
+| DEBT-013 | `LegacyContentTest::test_topic_page_links_to_articles_in_order` is flaky: `TheoryArticleFactory` draws `order` from 0–10 and the test pins only the second article to `order = 0`, so about 1 run in 11 ties and fails | Open | Medium | Architect | Sprint 2.3 (seen once in a full-suite run) | Next Content-domain task |
 
 ---
 
@@ -414,6 +415,27 @@ Either way, the current state (docs claim it works; code doesn't) should not per
 - `docs/01-architecture/domain-program.md` (`## 5. Lifecycle`, `### Versioning`)
 - `app/Models/Program.php`, `app/Policies/ProgramPolicy.php`, `app/Filament/Resources/Programs/Schemas/ProgramForm.php`
 - Copilot Agent Repository Review (High finding), Stabilization Sprint report (2026-07-19)
+
+---
+
+## DEBT-013: Flaky Article-Order Test (Content Domain)
+
+### Description
+
+`tests/Feature/Student/LegacyContentTest.php::test_topic_page_links_to_articles_in_order` creates the first article with the factory's random `order` (`numberBetween(0, 10)`) and the second with `order = 0`, then asserts the second is listed first. When the random value is also `0` the tie is broken by `id` and the assertion fails. Observed once while running the full suite during Sprint 2.3; the next run passed.
+
+### Why This Wasn't Fixed Immediately
+
+The test belongs to Sprint 2.2 (Content import), which is still pending PM review; Sprint 2.3 touches only registration and login (Task Isolation).
+
+### Recommended Resolution
+
+Give the first article an explicit `order` (e.g. `5`) in that test. One line; no production code involved.
+
+### Related Records
+
+- `tests/Feature/Student/LegacyContentTest.php`, `database/factories/TheoryArticleFactory.php`
+- `docs/04-sprints/sprint-08-review.md`
 
 ---
 

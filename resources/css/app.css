@@ -3,7 +3,243 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/*
+ * KimyaÖğren student design system — tokens from
+ * "KimyaÖğren Öğrenci Arayüzü v1" § 01. Amber is a fill only (dark ink on
+ * top); text uses amber-ink. Dark theme follows the OS preference.
+ */
+:root {
+    --ko-bg: #faf8f4;
+    --ko-surface: #ffffff;
+    --ko-surface2: #f4f0e9;
+    --ko-line: #e6e0d5;
+    --ko-line2: #cfc6b8;
+    --ko-ink: #1d1a16;
+    --ko-ink2: #4f483f;
+    --ko-ink3: #6b6357;
+    --ko-amber: #f5a524;
+    --ko-on-amber: #1d1a16;
+    --ko-amber-ink: #8a4b00;
+    --ko-amber-soft: #fdf1da;
+    --ko-ok: #1e7047;
+    --ko-ok-soft: #e4f2ea;
+    --ko-err: #b3261e;
+    --ko-err-soft: #fbe9e7;
+    --ko-warn: #7a5a00;
+    --ko-warn-soft: #fff3c4;
+    --ko-focus: #8a4b00;
+
+    color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ko-bg: #171410;
+        --ko-surface: #201c17;
+        --ko-surface2: #2a251f;
+        --ko-line: #37312a;
+        --ko-line2: #4e463c;
+        --ko-ink: #f3eee6;
+        --ko-ink2: #c9c0b3;
+        --ko-ink3: #a39a8c;
+        --ko-amber-ink: #f8bc55;
+        --ko-amber-soft: #3b2c12;
+        --ko-ok: #5fc790;
+        --ko-ok-soft: #16301f;
+        --ko-err: #f28b80;
+        --ko-err-soft: #3a1d1a;
+        --ko-warn: #e9c457;
+        --ko-warn-soft: #33290e;
+        --ko-focus: #f8bc55;
+    }
+}
+
+@theme inline {
+    --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --color-bg: var(--ko-bg);
+    --color-surface: var(--ko-surface);
+    --color-surface2: var(--ko-surface2);
+    --color-line: var(--ko-line);
+    --color-line2: var(--ko-line2);
+    --color-ink: var(--ko-ink);
+    --color-ink2: var(--ko-ink2);
+    --color-ink3: var(--ko-ink3);
+    --color-amber: var(--ko-amber);
+    --color-on-amber: var(--ko-on-amber);
+    --color-amber-ink: var(--ko-amber-ink);
+    --color-amber-soft: var(--ko-amber-soft);
+    --color-ok: var(--ko-ok);
+    --color-ok-soft: var(--ko-ok-soft);
+    --color-err: var(--ko-err);
+    --color-err-soft: var(--ko-err-soft);
+    --color-warn: var(--ko-warn);
+    --color-warn-soft: var(--ko-warn-soft);
+    --color-focus: var(--ko-focus);
+}
+
+@layer base {
+    body {
+        @apply bg-bg font-sans text-base/6 text-ink antialiased;
+    }
+
+    a {
+        @apply text-amber-ink hover:text-ink;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--ko-focus);
+        outline-offset: 2px;
+    }
+
+    sub,
+    sup {
+        font-size: 0.72em;
+        line-height: 0;
+    }
+
+    details summary {
+        list-style: none;
+    }
+
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply inline-flex min-h-12 items-center justify-center rounded-[10px] bg-amber px-6 text-[17px] font-semibold text-on-amber no-underline hover:text-on-amber;
+    }
+
+    .btn-secondary {
+        @apply inline-flex min-h-12 cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-line2 bg-surface px-4 text-[15px] font-medium text-ink no-underline hover:text-ink;
+    }
+
+    .eyebrow {
+        @apply font-mono text-[13px] font-medium tracking-[.04em] text-ink3;
+    }
+
+    /* Form field (§ 08): 48px control, amber focus, error border. */
+    .field-control {
+        @apply flex min-h-12 items-center rounded-[10px] border-[1.5px] border-line2 bg-surface pr-1.5 focus-within:border-2 focus-within:border-amber-ink focus-within:shadow-[0_0_0_3px_var(--ko-amber-soft)];
+    }
+
+    .field-control-invalid {
+        @apply border-2 border-err;
+    }
+
+    .field-input {
+        @apply min-h-11 w-full min-w-0 flex-1 bg-transparent px-3.5 text-base text-ink outline-none;
+    }
+
+    [data-rule][data-met='true'] {
+        @apply text-ok;
+    }
+
+    /* Grade choice row (§ 08): native radio inside a 56px label. */
+    .grade-option {
+        @apply flex min-h-14 cursor-pointer items-center gap-3.5 rounded-xl border-[1.5px] border-line2 bg-surface px-4 py-2 text-[17px] text-ink has-checked:border-2 has-checked:border-amber-ink has-checked:bg-amber-soft has-checked:font-semibold has-focus-visible:outline-[3px] has-focus-visible:outline-offset-2 has-focus-visible:outline-focus;
+    }
+
+    .grade-radio {
+        @apply size-[22px] flex-none cursor-pointer appearance-none rounded-full border-[1.5px] border-line2 outline-none checked:border-[6px] checked:border-amber-ink;
+    }
+
+    /* Sample-question answer option (landing page), states from § 01. */
+    .option {
+        @apply flex min-h-[52px] w-full cursor-pointer items-center gap-3.5 rounded-xl border-[1.5px] border-line2 bg-surface px-3.5 py-2 text-left text-[17px] text-ink;
+    }
+
+    .option-key {
+        @apply grid size-8 flex-none place-items-center rounded-[7px] border-[1.5px] border-line2 font-mono text-[15px] font-semibold;
+    }
+
+    .option[aria-checked='true'] {
+        @apply border-2 border-amber-ink bg-amber-soft;
+    }
+
+    .option[aria-checked='true'] .option-key {
+        @apply border-0 bg-amber text-on-amber;
+    }
+
+    .option[data-result='correct'] {
+        @apply border-2 border-ok bg-ok-soft;
+    }
+
+    .option[data-result='correct'] .option-key {
+        @apply border-0 bg-ok text-surface;
+    }
+
+    .option[data-result='wrong'] {
+        @apply border-2 border-err bg-err-soft;
+    }
+
+    .option[data-result='wrong'] .option-key {
+        @apply border-0 bg-err text-surface;
+    }
+
+    .option[data-result='correct'] [data-tag] {
+        @apply text-ok;
+    }
+
+    .option[data-result='wrong'] [data-tag] {
+        @apply text-err;
+    }
+
+    /* Imported theory article body (WordPress HTML, sanitized on import). */
+    .article-content {
+        @apply flex flex-col gap-4 text-[17px]/[1.7] text-pretty text-ink2;
+    }
+
+    .article-content strong,
+    .article-content b {
+        @apply font-semibold text-ink;
+    }
+
+    .article-content img {
+        @apply h-auto max-w-full rounded-[10px] border border-line bg-white;
+    }
+
+    .article-content iframe {
+        @apply aspect-video h-auto w-full rounded-[10px] border-0;
+    }
+
+    .article-content hr {
+        @apply border-line;
+    }
+
+    .article-content ul {
+        @apply list-disc pl-6;
+    }
+
+    .article-content ol {
+        @apply list-decimal pl-6;
+    }
+
+    .article-content h2,
+    .article-content h3 {
+        @apply mt-2 text-xl font-semibold text-ink;
+    }
+
+    .option:disabled {
+        @apply cursor-default;
+    }
+
+    [data-status][data-state='correct'] {
+        @apply bg-ok-soft text-ok;
+    }
+
+    [data-status][data-state='wrong'] {
+        @apply bg-err-soft text-err;
+    }
+
+    [data-status][data-state='correct'] [data-status-icon] {
+        @apply bg-ok text-surface;
+    }
+
+    [data-status][data-state='wrong'] [data-status-icon] {
+        @apply bg-err text-surface;
+    }
 }
