@@ -29,6 +29,8 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 ## Unreleased (Development)
 
 ### Added
+- Sprint 3.1: question bank foundation (Epic 3) — `questions` and `question_options` tables (`dd-questions.md` v1.1, `dd-question-options.md` v1.1 with `feedback`), enums `QuestionType` / `QuestionStatus` / `QuestionDifficulty` / `YksSession`, `Question` and `QuestionOption` models, `QuestionPolicy`, Filament `QuestionResource` for multiple-choice (exactly 5 options) and true/false questions with the Draft → Review → Approved → Deprecated workflow — see `docs/04-sprints/sprint-09-plan.md`, `sprint-09-review.md`
+- `tests/Feature/AdminPanelTest.php`: full-page render test for the admin panel navigation
 - Sprint 2.3: student registration and login (design § 08) — two-step registration (`/kayit`, `/kayit/sinif` with grade or graduate), login/logout (`/giris`, `/cikis`, remember me, 5-attempt/15-minute lockout), password reset (`/sifremi-unuttum`, `/sifre-sifirla/{token}`), e-mail verification (sent, not enforced), legal page skeletons (`/kullanim-kosullari`, `/kvkk-aydinlatma-metni`), `UserStatus` enum, `users.grade_id` / `is_graduate` / `terms_accepted_at` (`dd-users.md` v1.1), Turkish auth and mail texts, `/mufredat` opens the signed-in student's grade — see `docs/04-sprints/sprint-08-plan.md`, `sprint-08-review.md`
 - `docs/05-backlog/debt-log.md`: `DEBT-013` (flaky article-order test from Sprint 2.2, Open)
 - Initial AI onboarding documentation (AGENTS.md + docs/ai/)
@@ -95,6 +97,7 @@ Tracks all notable changes to the KimyaÖğren project. Follows [Keep a Changelo
 - `docs/01-architecture/domain-program.md`: `## 5. Lifecycle` and `### Versioning` sections marked with an explicit deferred-status banner; content otherwise preserved unchanged as the design target for whichever future Epic implements it
 
 ### Fixed
+- Every admin panel page crashed with a `TypeError` once the navigation rendered: `ProgramResource::getNavigationBadge()` returned an `int` from a `?string` method (`DEBT-014`, found and fixed in Sprint 3.1)
 - Program's View page (`ViewProgram.php`) threw a fatal error on every visit due to an invalid static call on a trait; now renders correctly with an Edit header action
 - `ProgramFactory` and `ProgramSeeder` double-JSON-encoded the `settings` / `supported_languages` attributes, which are already cast to `array` on the model, corrupting stored data
 - Filament admin panel had no real authorization: with no Policy and no `FilamentUser` implementation, Filament's default behavior blocked every user (including admins) outside the `local` environment, and allowed every authenticated user (including students) inside it

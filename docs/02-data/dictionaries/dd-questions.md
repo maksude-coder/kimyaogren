@@ -7,7 +7,7 @@
 - **Owner**: Assessment Domain Lead
 - **Created**: 2024-01-15
 - **Approved By**: Architect, PM
-- **Version**: 1.0
+- **Version**: 1.1
 
 ## Columns
 
@@ -62,7 +62,7 @@
 
 1. **Type Enum**: multiple_choice, true_false, short_answer, fill_blank, matching, ordering, essay
 2. Options stored in `question_options` table (not JSON) for querying
-3. Multiple choice: exactly 1 correct option required
+3. Multiple choice: exactly 5 options (A–E, YKS format), exactly 1 correct
 4. True/False: 2 options, 1 correct
 5. Fill blank: ordered blanks with answers
 6. Matching: left/right pairs
@@ -78,7 +78,7 @@
 ### QuestionType (cast to QuestionType::class)
 | Value | Label | Options Required |
 |-------|-------|------------------|
-| multiple_choice | Çoktan Seçmeli | 4-5, 1 correct |
+| multiple_choice | Çoktan Seçmeli | Exactly 5, 1 correct |
 | true_false | Doğru/Yanlış | 2, 1 correct |
 | short_answer | Kısa Cevaplı | N/A (text input) |
 | fill_blank | Boşluk Doldurma | Ordered blanks |
@@ -135,6 +135,16 @@ INSERT INTO question_options (question_id, option_text, is_correct, `order`) VAL
 - [ ] Tested: `php artisan migrate:fresh --seed`
 - [ ] Tested: `php artisan migrate:rollback`
 
+## Revision Notes
+
+### v1.1 — Sprint 3.1 (PM decisions, 16.11.2026)
+
+- Multiple choice has **exactly 5** options (was "4-5").
+- **Implemented types:** `multiple_choice`, `true_false`. The other five `QuestionType` values are reserved; the admin panel does not offer them yet.
+- `topic_id` RESTRICT confirmed (`DEBT-005` resolved). No `uuid` column (the dictionary, not `domain-assessment.md`, is authoritative).
+- `content`, `explanation` hold limited HTML (bold, italic, sub/superscript, lists).
+- `attempts` and `exams` relationships are not implemented until those tables exist.
+
 ---
 
-*Generated from Data Dictionary v1.0*
+*Generated from Data Dictionary v1.1*

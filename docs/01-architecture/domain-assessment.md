@@ -209,7 +209,7 @@ erDiagram
 
 | Type | Code | Options | Correct Count | Scoring | Use Case |
 |------|------|---------|---------------|---------|----------|
-| Multiple Choice | `multiple_choice` | 4-5 | Exactly 1 | 1 pt | Standard YKS |
+| Multiple Choice | `multiple_choice` | 5 | Exactly 1 | 1 pt | Standard YKS |
 | True/False | `true_false` | 2 (Doğru/Yanlış) | Exactly 1 | 1 pt | Quick check |
 | Short Answer | `short_answer` | 0 (text input) | N/A | Auto/Manual | Conceptual |
 | Fill in Blank | `fill_blank` | Ordered blanks | All | Partial | Terminology |
@@ -221,7 +221,7 @@ erDiagram
 
 | Type | Min Options | Max Options | Correct Required | Validation |
 |------|-------------|-------------|------------------|------------|
-| Multiple Choice | 4 | 5 | Exactly 1 | Exactly one `is_correct=true` |
+| Multiple Choice | 5 | 5 | Exactly 1 | Exactly one `is_correct=true` |
 | True/False | 2 | 2 | Exactly 1 | Options: "Doğru", "Yanlış" |
 | Fill Blank | 1 | 10 | All | Each blank = option with `order` |
 | Matching | 3 | 10 | All pairs | `left_item` + `right_item` pairs |
@@ -256,10 +256,10 @@ stateDiagram-v2
 
 | Rule | Specification |
 |------|---------------|
-| **Option Validity** | MCQ: 4-5 options, exactly 1 correct; TF: exactly 2 options |
+| **Option Validity** | MCQ: exactly 5 options, exactly 1 correct; TF: exactly 2 options |
 | **Difficulty Distribution** | Questions tagged 1-5; exams target distribution |
 | **Bloom Alignment** | `bloom_level` matches `learning_objective.bloom_level` |
-| **YKS Format Compliance** | YKS questions: 4 options, specific format |
+| **YKS Format Compliance** | YKS questions: 5 options (A–E), specific format |
 | **Explanation Required** | Approved questions must have `explanation` |
 | **Option Feedback** | Each option can have `feedback` text |
 

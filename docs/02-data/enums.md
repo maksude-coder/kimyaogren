@@ -174,7 +174,7 @@ enum QuestionType: string
     case MultipleChoice = 'multiple_choice';
     case TrueFalse = 'true_false';
     case ShortAnswer = 'short_answer';
-    case FillInBlank = 'fill_in_blank';
+    case FillBlank = 'fill_blank';
     case Matching = 'matching';
     case Ordering = 'ordering';
     case Essay = 'essay';
@@ -190,6 +190,15 @@ enum QuestionDifficulty: int
     case Medium = 3;
     case Hard = 4;
     case VeryHard = 5;
+}
+```
+
+#### YksSession
+```php
+enum YksSession: int
+{
+    case Tyt = 1;
+    case Ayt = 2;
 }
 ```
 

@@ -7,7 +7,7 @@
 - **Owner**: Assessment Domain Lead
 - **Created**: 2024-01-15
 - **Approved By**: Architect, PM
-- **Version**: 1.0
+- **Version**: 1.1
 
 ## Columns
 
@@ -20,6 +20,7 @@
 | order | SMALLINT UNSIGNED | NOT NULL, DEFAULT 0 | Display order | 1 |
 | left_item | VARCHAR(255) | NULLABLE | For matching: left column | "Bohr Model" |
 | right_item | VARCHAR(255) | NULLABLE | For matching: right column | "Quantized orbits" |
+| feedback | TEXT | NULLABLE | Why a student would arrive at this (wrong) option; shown after answering | "Katsayı 2 atlanıp mol oranı 1 : 1 alınırsa bu sonuca ulaşılır." |
 | created_at | TIMESTAMP | NOT NULL | Creation time | 2024-01-15 10:30:00 |
 | updated_at | TIMESTAMP | NOT NULL | Last update | 2024-01-15 10:30:00 |
 
@@ -41,7 +42,7 @@
 
 ## Business Rules
 
-1. **Multiple Choice**: 4-5 options, exactly 1 correct
+1. **Multiple Choice**: exactly 5 options (`order` 1–5 = A–E), exactly 1 correct
 2. **True/False**: 2 options ("Doğru", "Yanlış"), exactly 1 correct
 3. **Fill in Blank**: Ordered blanks, each option = one blank
 4. **Matching**: left_item + right_item pairs, is_correct not used
@@ -108,6 +109,14 @@ INSERT INTO question_options (question_id, option_text, `order`) VALUES
 - [ ] Tested: `php artisan migrate:fresh --seed`
 - [ ] Tested: `php artisan migrate:rollback`
 
+## Revision Notes
+
+### v1.1 — Sprint 3.1 (PM decisions, 16.11.2026)
+
+- Added `feedback` (design § 05: the solution explains why the chosen wrong answer came out).
+- Multiple choice has **exactly 5** options.
+- `option_text` is NOT NULL and holds limited HTML (sub/superscript for formulas). The matching type, which the usage table shows with a NULL `option_text`, is not implemented; that contradiction is to be settled when matching is scheduled.
+
 ---
 
-*Generated from Data Dictionary v1.0*
+*Generated from Data Dictionary v1.1*

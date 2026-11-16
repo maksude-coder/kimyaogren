@@ -14,7 +14,7 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-002 | `program_translations` recommendation vs. JSON-column implementation never reconciled | Open | Low | Architect | Sprint 1 | Unscheduled |
 | DEBT-003 | `dd-grades.md` predates the Program-rooted hierarchy; `program_id` / uniqueness scope undecided | **Resolved** | High | Architect | Sprint 1 (found during Sprint 1.2 kickoff prep) | Resolved before Task 1.2 start |
 | DEBT-004 | `docs/02-data/relationships.md` disagreed with the dictionaries on `Grade`→`Unit`→`Topic`→`Learning Objective` cascade delete behavior (RESTRICT vs. CASCADE), and was missing a `Program` section entirely | **Resolved** | High | Architect | Sprint 1.3 planning | Resolved before Sprint 1.3 plan finalized |
-| DEBT-005 | `docs/02-data/relationships.md` (Academic Domain, Topic→`questions`) says `CASCADE DELETE`; `docs/02-data/dictionaries/dd-questions.md` and `relationships.md`'s own Assessment Domain section say `RESTRICT` for the same `topic_id` FK | Open | Medium | Architect | Sprint 1.3 planning (found during `DEBT-004` cross-check) | Before Assessment domain (Question) implementation |
+| DEBT-005 | `docs/02-data/relationships.md` (Academic Domain, Topic→`questions`) says `CASCADE DELETE`; `docs/02-data/dictionaries/dd-questions.md` and `relationships.md`'s own Assessment Domain section say `RESTRICT` for the same `topic_id` FK | **Resolved** | Medium | Architect | Sprint 1.3 planning (found during `DEBT-004` cross-check) | Resolved in Sprint 3.1 — `RESTRICT` (PM decision 16.11.2026) |
 | DEBT-006 | `epic-01-academic-domain.md`'s Technical Requirements specify a nested "RelationManager" Filament UX (e.g. "Unit: Topics RelationManager"), but Grade/Unit/Topic all shipped as standalone resources instead | Open | Low | PM/Architect | Sprint 1.3 planning | Unscheduled — UX pass, not a data-model conflict |
 | DEBT-007 | `ProgramStatus::options()` (and, until fixed in Sprint 1.4, `TopicStatus::options()`) used `array_column(self::cases(), 'label', 'value')` — `label` is a method, not a property, so `array_column` silently returns an **empty array**. Confirmed broken in shipped, committed code: `ProgramsTable`'s status `SelectFilter` has zero selectable options right now. | **Resolved** | High | Architect | Sprint 1.4 (found while implementing `TopicStatus`) | Resolved in Hotfix Sprint 1.4.1 |
 | DEBT-008 | `dd-learning-objectives.md` documented `code` as **globally** unique, but the `KIM.{grade}.{unit}.{topic}.{sequence}` format encodes only numbers, not which Program they belong to — the same class of issue as `DEBT-003`, one level deeper | **Resolved** | High | Architect | Sprint 1.5 planning | Resolved before Sprint 1.5 plan finalized |
@@ -23,6 +23,7 @@ Tracks `DEBT-` items per `docs/00-project/quality-policy.md` ("Technical Debt Bu
 | DEBT-011 | `ProgramsTable`'s header `Action::make('export')` redirected to `route('filament.admin.resources.programs.export')`, a route that was never registered — clicking it in the admin UI threw `RouteNotFoundException`. No export architecture (package, controller, page) exists anywhere in the repo. | **Resolved** | High | Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Resolved same sprint — action removed |
 | DEBT-012 | `dd-program.md`'s Business Rules (#5, #6, #8) and `domain-program.md`'s full Lifecycle/Versioning section described publish-time immutable snapshots, archived-read-only enforcement, and a 30-day force-delete grace period as current requirements — but no code implemented any of it. | **Resolved (by decision)** | High | PM/Architect | Copilot Agent review, Stabilization Sprint (2026-07-19) | Officially deferred to a future Epic — ADR-003, resolved 2026-07-19 |
 | DEBT-013 | `LegacyContentTest::test_topic_page_links_to_articles_in_order` is flaky: `TheoryArticleFactory` draws `order` from 0–10 and the test pins only the second article to `order = 0`, so about 1 run in 11 ties and fails | Open | Medium | Architect | Sprint 2.3 (seen once in a full-suite run) | Next Content-domain task |
+| DEBT-014 | `ProgramResource::getNavigationBadge(): ?string` returned the `int` from `count()`; under `strict_types` every admin panel page that renders the navigation threw a `TypeError` | **Resolved** | Critical | Architect | Sprint 3.1 (browser verification of the question screens) | Resolved in Sprint 3.1 — `(string)` cast, `AdminPanelTest` |
 
 ---
 
@@ -134,7 +135,11 @@ Choosing a cascade strategy is a genuine architecture decision with real data-sa
 
 ---
 
-## DEBT-005: Topic→Question Cascade Rule Disagreement (Assessment Domain)
+## DEBT-005: Topic→Question Cascade Rule Disagreement (Assessment Domain) — RESOLVED
+
+### Resolution
+
+**Status: Resolved, Sprint 3.1 (PM decision 16.11.2026).** `questions.topic_id` is `RESTRICT`: a topic that has questions cannot be force-deleted. `relationships.md`'s Academic Domain row was corrected to match `dd-questions.md`. Consequence: force-deleting a Unit, Grade or Program whose topics have questions is refused by the database as well. `Topic.theoryArticles()` (the second check recommended below) remains `CASCADE DELETE` as documented in `dd-theory-articles.md`.
 
 ### Description
 
@@ -436,6 +441,27 @@ Give the first article an explicit `order` (e.g. `5`) in that test. One line; no
 
 - `tests/Feature/Student/LegacyContentTest.php`, `database/factories/TheoryArticleFactory.php`
 - `docs/04-sprints/sprint-08-review.md`
+
+---
+
+## DEBT-014: Admin Panel Crashed on Every Page (Navigation Badge Type) — RESOLVED
+
+### Resolution
+
+**Status: Resolved in Sprint 3.1.** `app/Filament/Resources/Programs/ProgramResource.php::getNavigationBadge()` now casts the count to `string`. `tests/Feature/AdminPanelTest.php` requests full panel pages (dashboard, programs, questions) so the navigation is rendered under test.
+
+### Description
+
+The method is declared `?string` and returned `->count()` (an `int`). The file uses `declare(strict_types=1)`, so PHP throws `TypeError: Return value must be of type ?string, int returned` whenever Filament builds the sidebar — that is, on every authenticated panel page. The test suite stayed green because Livewire component tests (`Livewire::test(ListPrograms::class)`) do not render the panel layout, and the only full-page requests in the suite were for users who are refused (403) or for the login page.
+
+### Why It Was Fixed Outside Its Own Task
+
+The Program resource is Epic 1 code and outside Sprint 3.1's scope. The crash made the question screens impossible to open in a browser, which the sprint's Definition of Done requires, and the fix is a one-token cast with no behavioural alternative. It is recorded here and in `sprint-09-review.md` for the PM instead of being applied silently.
+
+### Related Records
+
+- `app/Filament/Resources/Programs/ProgramResource.php`, `tests/Feature/AdminPanelTest.php`
+- `docs/04-sprints/sprint-09-review.md` (Findings 1)
 
 ---
 

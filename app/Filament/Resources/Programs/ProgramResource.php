@@ -41,7 +41,7 @@ class ProgramResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::query()
+        return (string) static::getModel()::query()
             ->where('status', 2) // Published
             ->where('is_active', true)
             ->count();
