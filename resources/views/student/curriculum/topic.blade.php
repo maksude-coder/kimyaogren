@@ -59,12 +59,13 @@
                 @if ($objectives->isEmpty())
                     <p class="rounded-[14px] border border-line bg-surface p-5 text-ink3">Bu konu için henüz kazanım eklenmedi.</p>
                 @else
-                    <ol class="overflow-hidden rounded-[14px] border border-line bg-surface">
+                    {{-- Rows go to three columns by the list's own width, not the viewport's: next to the side menu and the "Soru çöz" panel the list is narrow even on a wide screen. --}}
+                    <ol class="@container overflow-hidden rounded-[14px] border border-line bg-surface">
                         @foreach ($objectives as $objective)
-                            <li class="flex flex-col gap-1.5 border-b border-line px-3.5 py-3 last:border-b-0 lg:grid lg:min-h-[60px] lg:grid-cols-[140px_minmax(0,1fr)_150px] lg:items-center lg:gap-4 lg:px-5">
+                            <li class="flex flex-col gap-1.5 border-b border-line px-3.5 py-3 last:border-b-0 lg:min-h-[60px] lg:px-5 @2xl:grid @2xl:grid-cols-[140px_minmax(0,1fr)_150px] @2xl:items-center @2xl:gap-4">
                                 <span class="font-mono text-[13px] font-medium text-ink3 lg:text-sm">{{ $objective->code }}</span>
                                 <span class="text-[15px]/snug lg:text-base">{{ $objective->description }}</span>
-                                <x-student.bloom :level="$objective->bloom_level" />
+                                <span class="flex"><x-student.bloom :level="$objective->bloom_level" /></span>
                             </li>
                         @endforeach
                     </ol>
