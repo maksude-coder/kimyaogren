@@ -14,7 +14,7 @@ Detailed specification of each domain module: boundaries, entities, relationship
 | **Content** | Theory & Media | Designed | 3-4 | [domain-content.md](domain-content.md) |
 | **Assessment** | Questions & Exams | Designed | 7-8 | [domain-assessment.md](domain-assessment.md) |
 | **Practice** | Spaced Repetition | Designed | 9-11 | [domain-practice.md](domain-practice.md) |
-| **Progress** | Mastery & Analytics | Partly implemented (Sprint 3.3) | 13-16 | [domain-progress.md](domain-progress.md) |
+| **Progress** | Mastery & Analytics | Partly implemented (Sprint 3.3, 3.4) | 13-16 | [domain-progress.md](domain-progress.md) |
 | **User** | Auth & Authorization | Designed | 1 | [domain-user.md](domain-user.md) |
 | **Media** | File Management | Designed | 3 | [domain-media.md](domain-media.md) |
 | **Settings** | Configuration | Designed | 5 | [domain-settings.md](domain-settings.md) |
@@ -268,7 +268,8 @@ Mastery tracking, analytics, reporting, intervention alerts.
 | Topic Mastery | correct / answered over the last 20 answers in the topic (min. 5) |
 | Overall Progress | Average of topic masteries in curriculum |
 | Study Streak | Consecutive days with ≥1 session |
-| Weak Areas | Objectives with ≥ 5 answers and < 50% correct over the last 20 (Sprint 3.3); topic-level weak areas come with the "Bugün" page |
+| Weak Areas | Objectives with ≥ 5 answers and < 50% correct over the last 20 (Sprint 3.3); topics of level `Weak` (mastery < 50%) are listed on the "Bugün" page (Sprint 3.4) |
+| Daily Recommendation | First of five rules that finds a topic: weak → developing → not enough data → next topic of the grade → least recently practised (Sprint 3.4, `sprint-12-plan.md` § 2; pending PM confirmation) |
 | YKS Readiness | Simulated score based on current mastery |
 
 ### API

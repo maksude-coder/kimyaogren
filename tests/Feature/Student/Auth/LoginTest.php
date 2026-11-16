@@ -36,7 +36,7 @@ class LoginTest extends TestCase
         $user = User::factory()->create(['email' => 'elif@example.com']);
 
         $this->post(route('login'), ['email' => ' Elif@Example.com', 'password' => 'password'])
-            ->assertRedirect(route('curriculum.index'));
+            ->assertRedirect(route('today'));
 
         $this->assertAuthenticatedAs($user);
     }

@@ -26,7 +26,7 @@ class LoginController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        return redirect()->intended(route('curriculum.index'));
+        return redirect()->intended(route('today'));
     }
 
     public function destroy(Request $request): RedirectResponse

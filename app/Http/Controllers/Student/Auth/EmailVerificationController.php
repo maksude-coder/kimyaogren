@@ -19,7 +19,7 @@ class EmailVerificationController extends Controller
     {
         $request->fulfill();
 
-        return redirect()->route('curriculum.index')->with('status', 'E-posta adresin doğrulandı.');
+        return redirect()->route('today')->with('status', 'E-posta adresin doğrulandı.');
     }
 
     public function send(Request $request): RedirectResponse

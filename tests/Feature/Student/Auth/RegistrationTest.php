@@ -179,7 +179,7 @@ class RegistrationTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('register.grade'), ['grade' => (string) $grade->id])
-            ->assertRedirect(route('curriculum.index'));
+            ->assertRedirect(route('today'));
 
         $user->refresh();
         $this->assertSame($grade->id, $user->grade_id);
@@ -198,7 +198,7 @@ class RegistrationTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('register.grade'), ['grade' => 'mezun'])
-            ->assertRedirect(route('curriculum.index'));
+            ->assertRedirect(route('today'));
 
         $user->refresh();
         $this->assertNull($user->grade_id);

@@ -47,7 +47,7 @@ class GradeSelectionController extends Controller
             'is_graduate' => $graduate,
         ])->save();
 
-        return redirect()->route('curriculum.index');
+        return redirect()->route('today');
     }
 
     /**

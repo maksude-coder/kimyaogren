@@ -25,9 +25,6 @@ use Illuminate\Support\Collection;
  */
 class ProgressController extends Controller
 {
-    /** Days are counted in Turkey's time, whatever the server's time zone (rule 10). */
-    private const TIMEZONE = 'Europe/Istanbul';
-
     private const CALENDAR_DAYS = 28;
 
     private const WEAK_OBJECTIVES_SHOWN = 5;
@@ -169,13 +166,15 @@ class ProgressController extends Controller
      */
     private function calendar(User $user): array
     {
-        $today = Carbon::now(self::TIMEZONE)->startOfDay();
+        // Days are counted in the students' time zone, whatever the server's (rule 10).
+        $timezone = config('app.student_timezone');
+        $today = Carbon::now($timezone)->startOfDay();
         $first = $today->copy()->subDays(self::CALENDAR_DAYS - 1);
 
         $studied = $user->questionAttempts()
             ->where('answered_at', '>=', $first->copy()->utc())
             ->pluck('answered_at')
-            ->map(fn (Carbon $answeredAt): string => $answeredAt->copy()->setTimezone(self::TIMEZONE)->toDateString())
+            ->map(fn (Carbon $answeredAt): string => $answeredAt->copy()->setTimezone($timezone)->toDateString())
             ->unique()
             ->flip();
 

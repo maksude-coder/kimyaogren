@@ -69,6 +69,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Student Time Zone
+    |--------------------------------------------------------------------------
+    |
+    | Dates are stored in UTC. What a student sees as "today" or "this week"
+    | (the progress calendar, the "Bugün" page) is counted in this time zone.
+    |
+    */
+
+    'student_timezone' => 'Europe/Istanbul',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

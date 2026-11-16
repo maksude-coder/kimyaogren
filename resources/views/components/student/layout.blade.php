@@ -2,8 +2,8 @@
 
 {{--
     Student app shell (§ 02–04): sidebar on desktop, top bar on mobile.
-    Only destinations that exist are listed (Bugün / Profil arrive with
-    their domains — Sprint 2.1 plan § 2). İlerleme is for signed-in students.
+    Only destinations that exist are listed (Profil arrives with its
+    domain — Sprint 2.1 plan § 2). Bugün and İlerleme are for signed-in students.
 --}}
 @php
     $user = auth()->user();
@@ -13,6 +13,7 @@
     ];
 
     if ($user) {
+        array_unshift($destinations, ['label' => 'Bugün', 'url' => route('today'), 'current' => request()->routeIs('today')]);
         $destinations[] = ['label' => 'İlerleme', 'url' => route('progress.index'), 'current' => request()->routeIs('progress.*')];
     }
 @endphp

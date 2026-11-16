@@ -60,7 +60,7 @@ class EmailVerificationTest extends TestCase
 
         $this->actingAs($user)
             ->get($this->verificationUrl($user))
-            ->assertRedirect(route('curriculum.index'))
+            ->assertRedirect(route('today'))
             ->assertSessionHas('status', 'E-posta adresin doğrulandı.');
 
         $this->assertTrue($user->refresh()->hasVerifiedEmail());
