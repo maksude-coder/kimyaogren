@@ -270,6 +270,30 @@ class PracticeSessionTest extends TestCase
             ->assertSee('Oturumu bitir');
     }
 
+    public function test_option_feedback_is_rendered_through_the_allow_list(): void
+    {
+        $question = $this->approvedQuestions(1)->first();
+        $question->options[1]->update(['feedback' => '<p onclick="x()">H<sub>2</sub>O 18 g/mol</p><script>alert(1)</script>']);
+        $session = $this->start();
+        $session->answer($question, $question->options[1]);
+
+        $this->actingAs($this->student)
+            ->get(route('practice.show', [$session->id, 1]))
+            ->assertOk()
+            ->assertSee('<p>H<sub>2</sub>O 18 g/mol</p>', false)
+            ->assertDontSee('onclick', false)
+            ->assertDontSee('alert(1)', false);
+
+        $this->actingAs($this->student)->post(route('practice.finish', $session->id));
+
+        $this->actingAs($this->student)
+            ->get(route('practice.summary', $session->id))
+            ->assertOk()
+            ->assertSee('<p>H<sub>2</sub>O 18 g/mol</p>', false)
+            ->assertDontSee('onclick', false)
+            ->assertDontSee('alert(1)', false);
+    }
+
     public function test_correct_answer_is_recorded_and_cannot_be_changed(): void
     {
         $question = $this->approvedQuestions(2)->first();

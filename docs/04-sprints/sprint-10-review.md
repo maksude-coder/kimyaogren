@@ -19,21 +19,29 @@ Plan: `docs/04-sprints/sprint-10-plan.md` · Epics: `epic-03-question-bank.md`, 
 - **HTTP** — `App\Http\Controllers\Student\PracticeController`, `routes/web.php`, `CurriculumController::topic()` (panel data)
 - **Views** — `student/practice/{show,summary}.blade.php`, `components/student/rich.blade.php`, `student/curriculum/topic.blade.php` (panel)
 - **Frontend** — `resources/css/app.css` (grid, countdown, size choice, question HTML), `resources/js/app.js` (countdown)
-- **Tests** — `tests/Feature/Student/Practice/PracticeSessionTest.php` (27), `tests/Unit/QuestionHtmlTest.php` (5)
+- **Tests** — `tests/Feature/Student/Practice/PracticeSessionTest.php` (28), `tests/Unit/QuestionHtmlTest.php` (5)
 
 ## Definition of Done — Verified
 
 | Criterion | Status | Evidence |
 |-----------|--------|----------|
-| All tests pass | ✅ | 235/235 (203 existing + 32 new), run twice |
+| All tests pass | ✅ | 236/236 (203 existing + 33 new) |
 | Code style, build | ✅ | `vendor/bin/pint --test` clean; `npm run build` succeeds |
 | Migrations | ✅ | `migrate:fresh` and `migrate:rollback --step=2` on a scratch SQLite database. **MySQL not verified** |
-| Browser verification | ✅ partial | With three temporary questions and a test student: guest → login → back to topic; "Tümü (3)" + "Süre tut" → start; countdown ticking; wrong answer with feedback screen; flag; blank; correct answer; finish; summary with the review list. Checked through page text and scripted checks (no horizontal overflow at 578px, colours applied). **No screenshots could be taken** (the preview pane was not drawing), so the visual layout of the new screens has not been looked at; the expiry redirect and dark theme were not exercised in a browser |
+| Browser verification | ✅ | Second pass (16.11.2026) with screenshots, three temporary questions and a test student (development database backed up and restored afterwards): guest → login → back to topic; "Tümü (3)" + "Süre tut" → start; solving screen; wrong answer with solution and option feedback; flag; question left unanswered; finish; summary with "Çözümü aç"; countdown in the warning state ("az kaldı") and the redirect to the summary at zero. Desktop light (1024px) and mobile dark (375px, no horizontal overflow). **Not exercised:** a correct answer in this pass (covered by tests and the first pass) |
 | Docs synchronized | ✅ | See Files |
+
+## Found in the Second Browser Pass
+
+| Finding | Action |
+|---------|--------|
+| Option feedback was printed escaped, so `<p>` / `<sub>` tags appeared as text on the solving screen and the summary — against plan § 2 rule 11 | Fixed: feedback goes through the allow-list on both screens; test `test_option_feedback_is_rendered_through_the_allow_list` |
+| "Yanlışları gözden geçir" wrapped left-aligned on a 375px screen | Fixed: centred |
+| Topic page (Sprint 2.1 code) at about 1024px: the "Kazanımlar" rows switch to three columns while the page also shows the side menu and the "Soru çöz" panel, so the description wraps one word per line and the Bloom badge overlaps it | Fixed on PM instruction (16.11.2026): the rows switch to three columns by the list's own width (container query, 672px) instead of the viewport's. Checked at 1024px (stacked), 1440px (three columns) and 375px |
 
 ## Needs PM Attention
 
-1. **Look at the screens once.** Because screenshots were unavailable, spacing and visual fidelity to design § 05 / § 09 are unverified by eye.
+1. **Visual fidelity to design § 05 / § 09** has now been looked at by the AI developer only.
 2. **The bank is empty.** Every topic shows "soruları hazırlanıyor" until the content team approves questions.
 3. **Out of scope by plan:** mastery change and the insight sentence on the summary, "Yalnız zayıf kazanımlar", keyboard shortcuts, offline. The summary's "Yanlışları gözden geçir" jumps to the list on the same page.
 4. **Editing or deleting questions now matters.** An answered question cannot be force-deleted (by design). Editing an approved question changes what past attempts show; versioning or locking is still undecided (Sprint 3.1 review).

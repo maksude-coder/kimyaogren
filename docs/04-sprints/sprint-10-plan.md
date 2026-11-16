@@ -66,8 +66,8 @@ Routes (all under `auth`): `GET /calis/baslat/{topic}`, `POST /calis`, `GET /cal
 
 ## 5. Definition of Done
 
-- [x] All tests pass (existing 203 + 32 new = 235)
+- [x] All tests pass (existing 203 + 33 new = 236)
 - [x] `vendor/bin/pint --test` clean; `npm run build` succeeds
 - [x] `migrate:fresh` and rollback succeed (SQLite; MySQL not verified)
-- [ ] Start → answer (right, wrong, blank) → summary verified in a browser, mobile and desktop — **flow verified through page text only; no screenshots, layout not seen** (see review)
+- [x] Start → answer (right, wrong, blank) → summary verified in a browser, mobile and desktop — second pass with screenshots (see review)
 - [x] Dictionaries, `modules.md`, epics, `changelog.md` updated

@@ -61,7 +61,7 @@
         <div class="flex flex-wrap gap-2.5">
             <a href="{{ $topicUrl }}" class="btn-secondary min-h-[52px]">Teoriye dön</a>
             @if ($missed->isNotEmpty())
-                <a href="#yanlislar" class="btn-primary min-h-[52px] min-w-[200px] flex-1">Yanlışları gözden geçir</a>
+                <a href="#yanlislar" class="btn-primary min-h-[52px] min-w-[200px] flex-1 text-center">Yanlışları gözden geçir</a>
             @else
                 <a href="{{ $topicUrl }}" class="btn-primary min-h-[52px] min-w-[200px] flex-1">Konuya dön</a>
             @endif
@@ -127,7 +127,7 @@
                             @if (filled($selected?->feedback))
                                 <div class="flex gap-2.5 rounded-[10px] bg-warn-soft px-3 py-2.5 text-sm/[1.45]">
                                     <span aria-hidden="true" class="flex-none font-bold text-warn">!</span>
-                                    <span>{{ $selected->feedback }}</span>
+                                    <x-student.rich :html="$selected->feedback" class="flex-1" />
                                 </div>
                             @endif
                         </div>

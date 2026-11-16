@@ -111,7 +111,8 @@ class LegacyContentTest extends TestCase
 
     public function test_topic_page_links_to_articles_in_order(): void
     {
-        $this->article();
+        // Fixed order: the factory's random one can tie with the second article's 0.
+        $this->article()->update(['order' => 1]);
         TheoryArticle::factory()->for($this->topic)->published()->legacy('asitlerin-aktif-metallerle-tepkimeleri')->withContent()
             ->create(['title' => 'Asitlerin Aktif Metallerle Tepkimeleri', 'order' => 0]);
 

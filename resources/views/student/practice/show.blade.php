@@ -127,7 +127,7 @@
                     @if (! $attempt->is_correct && filled($selectedOption?->feedback))
                         <div class="flex gap-2.5 rounded-[10px] bg-warn-soft px-3 py-2.5 text-sm/[1.45]">
                             <span aria-hidden="true" class="flex-none font-bold text-warn">!</span>
-                            <span>{{ $selectedOption->feedback }}</span>
+                            <x-student.rich :html="$selectedOption->feedback" class="flex-1" />
                         </div>
                     @endif
                 </div>
