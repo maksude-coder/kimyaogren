@@ -244,7 +244,7 @@ SpacedRepetitionSchedule > (1) Question
 - Mastery = weighted correct rate with recency decay
 - Due queue prioritized by: overdue → due today → new
 - Session types: Topic Practice, Mixed Review, Weak Areas, Exam Sim
-- Minimum 5 questions per session
+- A session starts with as many approved questions as the topic has, up to the chosen size (PM decision 16.11.2026; the former 5-question minimum is removed)
 
 ---
 

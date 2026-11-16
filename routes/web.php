@@ -7,6 +7,7 @@ use App\Http\Controllers\Student\Auth\PasswordResetController;
 use App\Http\Controllers\Student\Auth\RegisterController;
 use App\Http\Controllers\Student\CurriculumController;
 use App\Http\Controllers\Student\LegacyContentController;
+use App\Http\Controllers\Student\PracticeController;
 use App\Http\Middleware\UseStudentLocale;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +48,17 @@ Route::middleware(UseStudentLocale::class)->group(function (): void {
             ->name('verification.send');
 
         Route::post('cikis', [LoginController::class, 'destroy'])->name('logout');
+
+        // Topic practice (design § 05, § 09, Sprint 3.2).
+        Route::controller(PracticeController::class)->prefix('calis')->name('practice.')->group(function (): void {
+            Route::get('baslat/{topic}', 'intent')->whereNumber('topic')->name('intent');
+            Route::post('/', 'store')->middleware('throttle:30,1')->name('store');
+            Route::get('{session}/ozet', 'summary')->whereNumber('session')->name('summary');
+            Route::post('{session}/bitir', 'finish')->whereNumber('session')->name('finish');
+            Route::get('{session}/{number?}', 'show')->whereNumber(['session', 'number'])->name('show');
+            Route::post('{session}/{number}/cevap', 'answer')->whereNumber(['session', 'number'])->name('answer');
+            Route::post('{session}/{number}/isaretle', 'flag')->whereNumber(['session', 'number'])->name('flag');
+        });
     });
 
     Route::view('kullanim-kosullari', 'student.legal.terms')->name('legal.terms');

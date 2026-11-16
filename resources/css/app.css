@@ -156,12 +156,68 @@
         @apply grid size-8 flex-none place-items-center rounded-[7px] border-[1.5px] border-line2 font-mono text-[15px] font-semibold;
     }
 
-    .option[aria-checked='true'] {
+    .option[aria-checked='true'],
+    .option:has(input:checked) {
         @apply border-2 border-amber-ink bg-amber-soft;
     }
 
-    .option[aria-checked='true'] .option-key {
+    .option[aria-checked='true'] .option-key,
+    .option:has(input:checked) .option-key {
         @apply border-0 bg-amber text-on-amber;
+    }
+
+    .option:has(input:focus-visible) {
+        outline: 3px solid var(--ko-focus);
+        outline-offset: 2px;
+    }
+
+    /* Question HTML (§ 05): paragraphs and solution steps from the question bank. */
+    .question-html {
+        @apply flex flex-col gap-2;
+    }
+
+    .question-html ol {
+        @apply flex list-decimal flex-col gap-1.5 pl-6;
+    }
+
+    .question-html ul {
+        @apply flex list-disc flex-col gap-1.5 pl-6;
+    }
+
+    /* Question grid (§ 05): current = frame, correct / wrong = fill + icon, dot = flagged. */
+    .grid-cell {
+        @apply relative grid h-9 min-w-9 place-items-center gap-0.5 rounded-md border-[1.5px] border-line2 bg-surface px-1.5 font-mono text-[13px] font-medium text-ink no-underline hover:text-ink;
+        grid-auto-flow: column;
+    }
+
+    .grid-cell[data-state='correct'] {
+        @apply border-ok bg-ok-soft text-ok;
+    }
+
+    .grid-cell[data-state='wrong'] {
+        @apply border-err bg-err-soft text-err;
+    }
+
+    .grid-cell[aria-current='true'] {
+        @apply border-2 border-ink;
+    }
+
+    .grid-flag {
+        @apply absolute -top-1 -right-1 size-2.5 rounded-full bg-amber-ink;
+    }
+
+    /* Countdown (§ 05): neutral until the last two minutes, then warning colour + label. */
+    .countdown {
+        @apply flex items-center gap-1.5 rounded-lg bg-surface2 px-2.5 py-1.5 font-mono text-sm font-semibold;
+    }
+
+    .countdown[data-warning='true'] {
+        @apply bg-warn-soft text-warn;
+    }
+
+    /* Session size choice on the topic page (§ 04). */
+    .size-choice {
+        @apply flex min-h-11 min-w-14 cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-line2 bg-surface px-3 font-mono text-[15px] font-medium has-checked:border-2 has-checked:border-amber-ink has-checked:bg-amber-soft has-focus-visible:outline-[3px] has-focus-visible:outline-offset-2 has-focus-visible:outline-focus;
     }
 
     .option[data-result='correct'] {

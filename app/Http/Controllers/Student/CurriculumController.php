@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Grade;
+use App\Models\PracticeSession;
 use App\Models\Program;
 use App\Models\Topic;
 use App\Models\Unit;
@@ -84,7 +85,7 @@ class CurriculumController extends Controller
     /**
      * A topic's learning objectives with their MEB code and Bloom level.
      */
-    public function topic(string $program, int $grade, string $unit, string $topic): View
+    public function topic(Request $request, string $program, int $grade, string $unit, string $topic): View
     {
         $program = $this->findProgram($program);
 
@@ -110,6 +111,9 @@ class CurriculumController extends Controller
             'articles' => $topic->theoryArticles()->published()->ordered()->orderBy('id')->get(),
             'unitPosition' => $unitPosition,
             'topicNumber' => "{$unitPosition}.{$topicPosition}",
+            // "Soru çöz" panel (Sprint 3.2): sizes the topic can fill, and the student's open session.
+            'sizeChoices' => PracticeSession::sizeChoices($topic->questions()->approved()->count()),
+            'openSession' => $request->user()?->practiceSessions()->where('topic_id', $topic->id)->open()->latest('id')->first(),
         ]);
     }
 

@@ -7,7 +7,7 @@
 - **Owner**: Practice Domain Lead
 - **Created**: 2024-01-15
 - **Approved By**: Architect, PM
-- **Version**: 1.0
+- **Version**: 1.1
 
 ## Columns
 
@@ -115,6 +115,16 @@ INSERT INTO question_attempts (user_id, question_id, practice_session_id, answer
 - [ ] Tested: `php artisan migrate:fresh --seed`
 - [ ] Tested: `php artisan migrate:rollback`
 
+## Revision Notes
+
+### v1.1 — Sprint 3.2
+
+- `exam_attempt_id` and its indexes are **not created yet**: the `exam_attempts` table does not exist. They are added with the exam sprint.
+- `practice_session_id` is `SET NULL` as in the Columns and Relationships tables; business rule 8 ("cascade delete on session deletion") contradicts them and is not applied.
+- Blank (skipped) questions create no attempt row.
+- `quality` stays NULL until spaced repetition is implemented.
+- `is_correct` is NOT NULL (essay grading, the only NULL case in the sample data, is not implemented).
+
 ---
 
-*Generated from Data Dictionary v1.0*
+*Generated from Data Dictionary v1.1*

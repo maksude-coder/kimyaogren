@@ -16,7 +16,7 @@ Give students a calm, curriculum-first web interface on top of the Epic 1 academ
 | 04 Konu sayfası (objectives + Bloom badges) | Epic 1 | **2.1** (without progress, theory, "Soru çöz") |
 | 08 Kayıt ve giriş (2-step register, login, password reset, e-mail verification) | `users` | **2.3** |
 | 02 Ana sayfa (daily recommendation) | Questions, attempts, mastery | Later — blocked on Assessment/Practice domains |
-| 05 Soru çözme, 09 Oturum sonu özeti | `questions`, `question_options`, `practice_sessions`, `question_attempts` | Later — blocked |
+| 05 Soru çözme, 09 Oturum sonu özeti | `questions`, `question_options`, `practice_sessions`, `question_attempts` | **3.2** (Epic 3; without mastery and the insight sentence) |
 | 06 İlerleme paneli | `topic_masteries`, attempts | Later — blocked |
 | 07 Empty / loading / offline / error states | per screen | Delivered alongside each screen; offline sync deferred |
 

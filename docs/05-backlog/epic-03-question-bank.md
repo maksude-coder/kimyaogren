@@ -14,7 +14,8 @@ Let the content team enter, review and approve YKS-format chemistry questions, e
 | Admin panel: create/edit multiple-choice and true/false questions, review workflow | — | **3.1** |
 | Bulk import (CSV/JSON), export | 3.1 | Later |
 | Remaining question types (short answer, fill blank, matching, ordering, essay) | Student designs for each type | Later |
-| Student question solving (design § 05, 09) | `practice_sessions`, `question_attempts` (Practice domain) | Later — Epic 2 screens blocked on this |
+| Student question solving (design § 05, 09): topic practice, timer, summary | `practice_sessions`, `question_attempts` (Practice domain) | **3.2** |
+| Mastery, weak-area practice, spaced repetition | `topic_masteries`, `spaced_repetition_schedules` | Later |
 | Exams (`exams`, sections, attempts) | Question bank | Later |
 
 ## Cross-Cutting Rules

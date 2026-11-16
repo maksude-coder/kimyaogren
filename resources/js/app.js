@@ -125,3 +125,34 @@ function initPasswordField(field) {
 }
 
 document.querySelectorAll('[data-password-field]').forEach(initPasswordField);
+
+/**
+ * Practice countdown (§ 05): neutral until the last two minutes, then the
+ * warning state with an "az kaldı" label. The server ends the session; at
+ * zero the page only moves on to the summary.
+ */
+function initCountdown(root) {
+    const text = root.querySelector('[data-countdown-text]');
+    const label = root.querySelector('[data-countdown-label]');
+    const endsAt = Date.now() + Number(root.dataset.seconds) * 1000;
+
+    const tick = () => {
+        const left = Math.max(0, Math.round((endsAt - Date.now()) / 1000));
+
+        text.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+        root.dataset.warning = String(left <= 120);
+        label.hidden = left > 120;
+
+        if (left === 0) {
+            window.location.assign(root.dataset.expiredUrl);
+
+            return;
+        }
+
+        window.setTimeout(tick, 1000);
+    };
+
+    tick();
+}
+
+document.querySelectorAll('[data-countdown]').forEach(initCountdown);
