@@ -12,7 +12,8 @@ Let the content team enter, review and approve YKS-format chemistry questions, e
 |------|-------|--------|
 | `questions`, `question_options` schema, models, enums, policy | Epic 1 (`topics`, `learning_objectives`) | **3.1** |
 | Admin panel: create/edit multiple-choice and true/false questions, review workflow | — | **3.1** |
-| Bulk import (CSV/JSON), export | 3.1 | Later |
+| Bulk import (CSV), template | 3.1 | **3.5** |
+| JSON import, export, Excel (.xlsx) | 3.5 | Later |
 | Remaining question types (short answer, fill blank, matching, ordering, essay) | Student designs for each type | Later |
 | Student question solving (design § 05, 09): topic practice, timer, summary | `practice_sessions`, `question_attempts` (Practice domain) | **3.2** |
 | Topic mastery and the progress panel (design § 06) | `topic_masteries` (Progress domain) | **3.3** |

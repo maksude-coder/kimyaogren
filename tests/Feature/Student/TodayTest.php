@@ -42,7 +42,7 @@ class TodayTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-11-16 09:00', 'Europe/Istanbul'));
 
         $this->program = Program::factory()->highSchool()->published()->create(['slug' => 'lise-kimya', 'display_order' => 1]);
-        $this->grade = Grade::factory()->for($this->program)->number(10)->active()->create();
+        $this->grade = Grade::factory()->for($this->program)->number(10)->active()->create(['order' => 10]);
         $this->unit = Unit::factory()->for($this->grade)->code('10.3')->active()->create(['name' => 'Asitler ve Bazlar']);
         $this->topic = Topic::factory()->for($this->unit)->published()->create(['name' => 'Asit Baz Tepkimeleri', 'slug' => 'asit-baz', 'order' => 0]);
         $this->student = User::factory()->create(['name' => 'Elif Yılmaz', 'grade_id' => $this->grade->id]);
@@ -109,8 +109,8 @@ class TodayTest extends TestCase
 
     public function test_new_student_chooses_where_to_start(): void
     {
-        Grade::factory()->for($this->program)->number(9)->active()->create();
-        Grade::factory()->for($this->program)->number(12)->inactive()->create();
+        Grade::factory()->for($this->program)->number(9)->active()->create(['order' => 9]);
+        Grade::factory()->for($this->program)->number(12)->inactive()->create(['order' => 12]);
 
         $this->today()
             ->assertSee('Hoş geldin, Elif')
@@ -126,7 +126,7 @@ class TodayTest extends TestCase
 
     public function test_new_graduate_starts_with_the_first_grade(): void
     {
-        Grade::factory()->for($this->program)->number(9)->active()->create();
+        Grade::factory()->for($this->program)->number(9)->active()->create(['order' => 9]);
         $this->student = User::factory()->graduate()->create(['name' => 'Deniz Kaya']);
 
         $this->today()
@@ -203,7 +203,7 @@ class TodayTest extends TestCase
 
     public function test_next_topic_of_the_grade_is_recommended_in_curriculum_order(): void
     {
-        $grade11 = Grade::factory()->for($this->program)->number(11)->active()->create();
+        $grade11 = Grade::factory()->for($this->program)->number(11)->active()->create(['order' => 11]);
         $unit11 = Unit::factory()->for($grade11)->code('11.1')->active()->create();
 
         $withoutQuestions = $this->topic('Sorusu Olmayan Konu', 1);

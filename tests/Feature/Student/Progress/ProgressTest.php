@@ -40,7 +40,7 @@ class ProgressTest extends TestCase
         $this->withoutVite();
 
         $this->program = Program::factory()->highSchool()->published()->create(['slug' => 'lise-kimya', 'display_order' => 1]);
-        $this->grade = Grade::factory()->for($this->program)->number(10)->active()->create();
+        $this->grade = Grade::factory()->for($this->program)->number(10)->active()->create(['order' => 10]);
         $this->unit = Unit::factory()->for($this->grade)->code('10.3')->active()->create();
         $this->topic = Topic::factory()->for($this->unit)->published()->create(['name' => 'Asit Baz Tepkimeleri', 'slug' => 'asit-baz']);
         $this->student = User::factory()->create(['grade_id' => $this->grade->id]);
@@ -287,7 +287,7 @@ class ProgressTest extends TestCase
 
     public function test_topic_mastery_is_listed_one_grade_at_a_time(): void
     {
-        $grade11 = Grade::factory()->for($this->program)->number(11)->active()->create();
+        $grade11 = Grade::factory()->for($this->program)->number(11)->active()->create(['order' => 11]);
         $unit11 = Unit::factory()->for($grade11)->code('11.2')->active()->create();
         $topic11 = Topic::factory()->for($unit11)->published()->create(['name' => 'Gazlar']);
 
@@ -315,7 +315,7 @@ class ProgressTest extends TestCase
 
     public function test_grade_without_answers_says_so(): void
     {
-        Grade::factory()->for($this->program)->number(11)->active()->create();
+        Grade::factory()->for($this->program)->number(11)->active()->create(['order' => 11]);
         $this->answers([true]);
 
         $this->actingAs($this->student)

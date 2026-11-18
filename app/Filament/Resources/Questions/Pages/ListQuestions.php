@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Questions\Pages;
 
+use App\Filament\Resources\Questions\Actions\ImportQuestionsActions;
 use App\Filament\Resources\Questions\QuestionResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -15,6 +16,7 @@ class ListQuestions extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            ...ImportQuestionsActions::make(),
             CreateAction::make(),
         ];
     }
