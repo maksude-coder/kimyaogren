@@ -54,4 +54,4 @@ See plan § 4. In addition, the landing page drops the design's offline claims (
 
 ## Approval
 
-**Status: Pending PM approval.** No commit has been created.
+**Status: Approved and committed** — `5e4d8b0` (together with Sprints 2.2 and 2.3).

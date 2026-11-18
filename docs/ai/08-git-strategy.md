@@ -2,6 +2,8 @@
 
 This document defines the Git workflow for the KimyaÖğren project.
 
+> **Current practice (until a `develop` branch and CI exist):** feature branches start from `main` and are rebased / fast-forwarded onto `main` after PM approval of the sprint review — no `develop`, no squash merge, one commit per sprint. Sprints 3.1–3.4 followed this. The `develop`-based flow below is the target once release branches are needed.
+
 ---
 
 ## Branching Model

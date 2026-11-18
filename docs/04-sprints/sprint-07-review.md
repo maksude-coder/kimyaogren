@@ -50,4 +50,4 @@ Plan: `docs/04-sprints/sprint-07-plan.md` · Decision: `docs/06-adr/004-preserve
 
 ## Approval
 
-**Status: Pending PM approval.** No commit has been created.
+**Status: Approved and committed** — `5e4d8b0` (together with Sprints 2.1 and 2.3).

@@ -53,4 +53,4 @@ After registration or login the student lands on their own grade in `/mufredat`.
 
 ## Approval
 
-**Status: Pending PM approval.** No commit has been created.
+**Status: Approved and committed** — `5e4d8b0` (together with Sprints 2.1 and 2.2).

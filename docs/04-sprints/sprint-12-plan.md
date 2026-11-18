@@ -1,6 +1,6 @@
 # Sprint 3.4 Plan — "Bugün" Home Page
 
-> **Status: IN PROGRESS.** Branch `feature/today-home` (on top of `feature/progress-mastery`, Sprint 3.3).
+> **Status: DONE** — approved 18.11.2026 and committed in `0f38101` (see `sprint-12-review.md`). The proposals in § 2 were accepted as proposed.
 
 ## Sprint Goal
 > A signed-in student lands on "Bugün" and sees one thing to do now, with the reason for it — design § 02 "Ana sayfa" and the new-student state of § 07.

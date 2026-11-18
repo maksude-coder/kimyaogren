@@ -1,6 +1,6 @@
 # Sprint 3.2 Plan — Topic Practice (Student Question Solving)
 
-> **Status: IMPLEMENTED — pending PM review** (see `sprint-10-review.md`). No commit until approved.
+> **Status: DONE** — approved and committed in `cec8318`, follow-up fix `a8b1288` (see `sprint-10-review.md`).
 
 ## Sprint Goal
 > A signed-in student starts a practice session from a topic page, answers approved questions one by one with immediate step-by-step feedback, and gets an end-of-session summary — design § 05 "Soru çözme" and § 09 "Oturum sonu özeti".

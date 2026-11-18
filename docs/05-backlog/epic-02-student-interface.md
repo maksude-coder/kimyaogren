@@ -15,7 +15,7 @@ Give students a calm, curriculum-first web interface on top of the Epic 1 academ
 | 03 Müfredat gezgini (grade → unit → topic) | Epic 1 | **2.1** |
 | 04 Konu sayfası (objectives + Bloom badges) | Epic 1 | **2.1** (without progress, theory, "Soru çöz") |
 | 08 Kayıt ve giriş (2-step register, login, password reset, e-mail verification) | `users` | **2.3** |
-| 02 Ana sayfa "Bugün" (daily recommendation, unfinished session, weak topics, this week; new-student state of § 07) | Questions, attempts, mastery | **3.4** (rules proposed by the AI developer, pending PM confirmation — `sprint-12-plan.md`; without theory steps and "YKS tekrar") |
+| 02 Ana sayfa "Bugün" (daily recommendation, unfinished session, weak topics, this week; new-student state of § 07) | Questions, attempts, mastery | **3.4** (rules proposed by the AI developer and accepted by PM 18.11.2026 — `sprint-12-review.md`; without theory steps and "YKS tekrar") |
 | 05 Soru çözme, 09 Oturum sonu özeti | `questions`, `question_options`, `practice_sessions`, `question_attempts` | **3.2** (Epic 3; mastery change on the summary in **3.3**; without the insight sentence) |
 | 06 İlerleme paneli | `topic_masteries`, attempts | **3.3** (Epic 3) |
 | 07 Empty / loading / offline / error states | per screen | Delivered alongside each screen; offline sync deferred |

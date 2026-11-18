@@ -1,6 +1,6 @@
 # Sprint 3.1 Plan — Question Bank Foundation
 
-> **Status: IMPLEMENTED — pending PM review** (see `sprint-09-review.md`). No commit until approved.
+> **Status: DONE** — approved and committed in `18a39c1` (see `sprint-09-review.md`).
 
 ## Sprint Goal
 > The content team can enter multiple-choice and true/false questions in the admin panel, attach them to a topic and learning objective, and move them through Draft → Review → Approved.

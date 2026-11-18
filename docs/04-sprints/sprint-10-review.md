@@ -52,4 +52,4 @@ Plan: `docs/04-sprints/sprint-10-plan.md` · Epics: `epic-03-question-bank.md`, 
 
 ## Approval
 
-**Status: Pending PM approval.** No commit has been created.
+**Status: Approved and committed** — `cec8318`, follow-up fix `a8b1288` (merged to `main`).

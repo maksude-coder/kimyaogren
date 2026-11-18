@@ -52,4 +52,4 @@ Only `Approved` + active questions are returned by `Question::approved()`; nothi
 
 ## Approval
 
-**Status: Pending PM approval.** No commit has been created.
+**Status: Approved and committed** — `18a39c1` (merged to `main`).

@@ -1,6 +1,6 @@
 # Sprint 2.1 Plan — Student Interface Foundation
 
-> **Status: IMPLEMENTED — pending PM review** (see `sprint-06-review.md`). No commit is created until this sprint's review is approved.
+> **Status: DONE** — approved and committed in `5e4d8b0` (see `sprint-06-review.md`).
 
 ## Sprint Goal
 > Ship the student-facing foundation from the approved design package: design-system tokens, the public landing page, and a read-only curriculum browser (grade → unit → topic → learning objectives) backed by the Epic 1 data, visible only for published/active content.

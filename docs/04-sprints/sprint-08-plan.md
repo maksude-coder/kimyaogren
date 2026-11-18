@@ -1,6 +1,6 @@
 # Sprint 2.3 Plan — Student Registration and Login
 
-> **Status: IMPLEMENTED — pending PM review** (see `sprint-08-review.md`). No commit until approved.
+> **Status: DONE** — approved and committed in `5e4d8b0` (see `sprint-08-review.md`).
 
 ## Sprint Goal
 > Students can create an account in two steps (account, then grade), sign in and out, reset a forgotten password and confirm their e-mail address — design § 08 "Kayıt ve giriş".

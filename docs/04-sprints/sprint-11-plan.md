@@ -1,6 +1,6 @@
 # Sprint 3.3 Plan — Topic Mastery and the Progress Panel
 
-> **Status: IMPLEMENTED — pending PM review** (see `sprint-11-review.md`). Branch `feature/progress-mastery`.
+> **Status: DONE** — approved and committed in `8894540` (see `sprint-11-review.md`).
 
 ## Sprint Goal
 > After every answer the student's mastery of the topic is updated, and a signed-in student can open "İlerleme" to see how much they know (topic mastery), where they struggle (weak objectives) and whether they study regularly (28-day calendar) — design § 06 "İlerleme paneli".

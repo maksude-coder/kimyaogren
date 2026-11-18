@@ -52,4 +52,4 @@ Plan: `docs/04-sprints/sprint-11-plan.md` · Epics: `epic-03-question-bank.md`, 
 
 ## Approval
 
-**Status: Pending PM approval.** Nothing has been committed.
+**Status: Approved and committed** — `8894540` (PM approval 18.11.2026, merged to `main` with Sprint 3.4).

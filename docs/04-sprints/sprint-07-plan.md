@@ -1,6 +1,6 @@
 # Sprint 2.2 Plan — kimyaogren.com Content Import
 
-> **Status: IMPLEMENTED — pending PM review** (see `sprint-07-review.md`). No commit until approved.
+> **Status: DONE** — approved and committed in `5e4d8b0` (see `sprint-07-review.md`).
 
 ## Sprint Goal
 > Import all 302 kimyaogren.com WordPress posts into the curriculum as Theory Articles under the correct MEB grade → unit → topic, without breaking any existing URL (ADR-004).
